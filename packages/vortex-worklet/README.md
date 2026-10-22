@@ -1,6 +1,8 @@
 # vortex-worklet
 
-A luminous, tilted accretion disk with bent light, a dark center, and a photon rim.
+A thin, turbulent accretion disk crossing a circular black-hole shadow, with lensed upper/lower images, radial cooling, and a brighter approaching edge.
+
+The silhouette draws on [NASA's black-hole accretion-disk visualization](https://svs.gsfc.nasa.gov/13326/). This painter uses bounded vector geometry to suggest those features; it is an artistic approximation, not a relativistic ray tracer. The colors remain art-directable through `--worklet-hue`.
 
 Zero runtime dependencies. One self-contained paint module, a minified alternative, and an optional typed loader. This checkout contains an **unpublished 0.1.0 candidate**; install a locally packed tarball until this version is released.
 
@@ -60,16 +62,17 @@ Register `--worklet-time` once in your document. Without an animation, the effec
 
 ## CSS inputs
 
-| Property              | Default | Meaning                                      |
-| --------------------- | ------- | -------------------------------------------- |
-| `--worklet-time`      | 0       | One loop is 0–1; animate a registered number |
-| `--worklet-seed`      | 42      | Repeatable variation                         |
-| `--worklet-hue`       | 225     | Base hue in degrees, clamped to -3600–3600   |
-| `--worklet-intensity` | 1       | 0–2 light multiplier                         |
-| `--vortex-rings`      | 100     | 20–160 rings                                 |
-| `--vortex-tilt`       | -12     | -60–60 degrees                               |
-| `--vortex-lensing`    | 0.9     | 0–1.5; light bending                         |
-| `--vortex-radius`     | 1       | 0.3–1.3; disk scale                          |
+| Property               | Default | Meaning                                      |
+| ---------------------- | ------- | -------------------------------------------- |
+| `--worklet-time`       | 0       | One loop is 0–1; animate a registered number |
+| `--worklet-seed`       | 42      | Repeatable variation                         |
+| `--worklet-hue`        | 225     | Base hue in degrees, clamped to -3600–3600   |
+| `--worklet-intensity`  | 1       | 0–2 light multiplier                         |
+| `--vortex-rings`       | 100     | 20–160 radial gas bands; rendering detail    |
+| `--vortex-tilt`        | -8      | -60–60 degrees; screen rotation              |
+| `--vortex-lensing`     | 0.9     | 0–1.5; light bending                         |
+| `--vortex-radius`      | 1       | 0.3–1.3; disk scale                          |
+| `--vortex-inclination` | 0.12    | 0.04–0.5; projected disk opening             |
 
 Numeric values are finite and bounded; missing or malformed numeric values use defaults. Counts are integer-truncated unless stated otherwise. CSS colors should be valid explicit colors; Paint API `currentColor` does not resolve to the element's text color. Invalid colors follow the browser's Canvas style-assignment behavior.
 

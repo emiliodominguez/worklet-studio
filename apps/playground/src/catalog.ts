@@ -282,18 +282,20 @@ export const experiments: Experiment[] = [
 		id: "vortex",
 		name: "Vortex",
 		subtitle: "Even light falls.",
-		description: "A tilted disk of luminous matter bends around a dark center. Fine orbital bands form an impossible little gravity well.",
+		description:
+			"Hot gas circles a black-hole shadow. Light from the far side wraps above and below it, while the approaching edge burns brighter.",
 		hint: "Lensing bends the far side of the disk",
 		controls: [
-			control("--vortex-rings", "Orbits", 20, 160, 1, 100),
+			control("--vortex-rings", "Detail", 20, 160, 1, 100),
 			control("--vortex-lensing", "Lensing", 0, 1.5, 0.05, 0.9),
-			control("--vortex-tilt", "Tilt", -60, 60, 1, -12),
+			control("--vortex-tilt", "Tilt", -60, 60, 1, -8),
+			control("--vortex-inclination", "Disk opening", 0.04, 0.5, 0.01, 0.12),
 			control("--vortex-radius", "Scale", 0.3, 1.3, 0.05, 1),
 		],
 		presets: [
 			{ name: "Event horizon", values: { "--worklet-hue": 25, "--vortex-lensing": 0.9 } },
 			{ name: "Blue shift", values: { "--worklet-hue": 205, "--vortex-lensing": 1.2, "--vortex-tilt": 18, "--vortex-rings": 140 } },
-			{ name: "Saturn", values: { "--worklet-hue": 310, "--vortex-lensing": 0.15, "--vortex-tilt": -25, "--vortex-radius": 1.1 } },
+			{ name: "Ember disk", values: { "--worklet-hue": 18, "--vortex-lensing": 0.65, "--vortex-tilt": -18, "--vortex-inclination": 0.25 } },
 		],
 	},
 	{

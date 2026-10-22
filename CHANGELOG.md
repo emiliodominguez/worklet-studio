@@ -12,6 +12,8 @@ Six animated materials: expanding/fading legacy ripples, orbital halos, spectral
 
 Aurora ribbons, generative flow fields, liquid ripple interference, iridescent foil, curved water caustics, gravitational vortices, and terrain contours. Shared CSS time, hue, intensity, and seed controls, with deterministic rendering and bounded work. Flow fields now have brighter tapered threads; iridescence adds reflective highlights and finer gradients.
 
+Vortex realism pass: replace the folded orbital sheet with a thin accretion disk, circular shadow, lensed upper/lower arcs, hotter inner gas, and asymmetric emission. Add disk opening and an Ember disk preset; preserve the existing paint name and controls.
+
 ## Studio
 
 Turborepo, nine independently packable packages, 33 interactive presets, a dedicated eight-preset cursor picker, SVG icons, mobile layout, reduced-motion behavior, visibility pausing, code recipes, full screen, and share links. Original npm source retained for provenance. Unit, browser, and isolated-package checks plus CI configuration.
