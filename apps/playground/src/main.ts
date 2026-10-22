@@ -67,7 +67,7 @@ element("#app").innerHTML = `
 		</div>
 		<section class="${styles["recipe"]}" aria-labelledby="recipe-heading">
 			<div class="${styles["recipe-intro"]}"><span class="${styles["code-symbol"]}" aria-hidden="true">${icon("code")}</span><div><h2 id="recipe-heading">Take the effect with you.</h2><p>One element. Your colors. Your motion.</p></div><button type="button" id="copy">${icon("copy")}Copy recipe</button></div>
-			<details><summary>See the CSS and setup</summary><div class="${styles["recipe-code"]}"><pre><code id="css-code"></code></pre><pre><code id="js-code"></code></pre></div></details>
+			<details><summary>${icon("chevron")}See the CSS and setup</summary><div class="${styles["recipe-code"]}"><pre><code id="css-code"></code></pre><pre><code id="js-code"></code></pre></div></details>
 		</section>
 		<section id="about" class="${styles["about"]}"><h2>Yes, this is a CSS background.</h2><p>Each experiment is a Houdini paint worklet: a small JavaScript painter that gives CSS a new kind of image. The animation is driven by a CSS custom property. No canvas elements, videos, or image sequences.</p><p>Made by Emilio Domínguez. Nine independent packages, one shared studio. Chrome and Edge support CSS Paint; other browsers keep a static fallback. Motion pauses when the preview is out of view and respects your reduced-motion preference.</p></section>
 	</main>

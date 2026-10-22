@@ -379,10 +379,27 @@
 	border-top: 1px solid #2b3140;
 }
 .recipe summary {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	list-style: none;
 	font-size: 12px;
 	padding: 15px 25px;
 	color: #a2a9bb;
 	cursor: pointer;
+}
+.recipe summary::-webkit-details-marker {
+	display: none;
+}
+.recipe summary::marker {
+	content: "";
+}
+.recipe summary svg {
+	width: 14px;
+	height: 14px;
+}
+.recipe details[open] summary svg {
+	transform: rotate(90deg);
 }
 .recipe-code {
 	display: grid;

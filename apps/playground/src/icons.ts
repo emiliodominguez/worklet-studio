@@ -16,6 +16,7 @@ const paths: Record<string, string> = {
 	ripple: '<ellipse cx="12" cy="12" rx="10" ry="8"/><ellipse cx="12" cy="12" rx="6" ry="4.8"/><ellipse cx="12" cy="12" rx="2" ry="1.6"/>',
 	iridescence: '<path d="m12 2 9 10-9 10L3 12 12 2Z"/><path d="m12 2 3 10-3 10-3-10 3-10ZM3 12h18"/>',
 	arrow: '<path d="M6 18 18 6M6 6h12v12"/>',
+	chevron: '<path d="m9 5 7 7-7 7"/>',
 	fullscreen: '<path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/>',
 	collapse: '<path d="M3 8h5V3m13 5h-5V3M8 21v-5H3m13 5v-5h5"/>',
 	code: '<path d="m8 6-6 6 6 6m8-12 6 6-6 6m-3-14-2 16"/>',
