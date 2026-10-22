@@ -14,6 +14,9 @@
 		"aurora-worklet": "*",
 		"flow-field-worklet": "*",
 		"ripple-worklet": "*",
-		"iridescence-worklet": "*"
+		"iridescence-worklet": "*",
+		"caustics-worklet": "*",
+		"vortex-worklet": "*",
+		"terrain-worklet": "*"
 	}
 }

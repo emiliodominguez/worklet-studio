@@ -10,7 +10,11 @@ import flowUrl from "flow-field-worklet/worklet.js?url";
 import rippleUrl from "ripple-worklet/worklet.js?url";
 import iridescenceUrl from "iridescence-worklet/worklet.js?url";
 
-const urls = [auroraUrl, particlesUrl, cursorUrl, flowUrl, rippleUrl, iridescenceUrl];
+import causticsUrl from "caustics-worklet/worklet.js?url";
+import vortexUrl from "vortex-worklet/worklet.js?url";
+import terrainUrl from "terrain-worklet/worklet.js?url";
+
+const urls = [auroraUrl, particlesUrl, cursorUrl, flowUrl, rippleUrl, iridescenceUrl, causticsUrl, vortexUrl, terrainUrl];
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
 let selected = 0,
 	preset = 0,
@@ -37,13 +41,14 @@ element("#app").innerHTML = `
 	<main class="${styles["main"]}">
 		<section class="${styles["intro"]}" aria-labelledby="headline">
 			<h1 id="headline">Make CSS a little unreal.</h1>
-			<p>Light. Motion. A few custom properties.<br>Six experiments at the edge of what a background can be.</p>
+			<p>Light. Motion. A few custom properties.<br>Nine experiments at the edge of what a background can be.</p>
 		</section>
 		<nav class="${styles["experiments"]}" aria-label="Choose an experiment">${experiments
 			.map(function tab(item, index) {
 				return `<button type="button" data-effect="${index}" aria-pressed="${index === 0}">${icon(item.id)}${item.name}</button>`;
 			})
 			.join("")}</nav>
+		<div class="${styles["cursor-shelf"]}" id="cursor-shelf" role="group" aria-label="Cursor materials" hidden></div>
 		<div class="${styles["studio"]}">
 			<section class="${styles["stage"]}" id="stage" aria-label="Live effect preview">
 				<div class="${styles["surface"]}" id="surface" role="img" aria-label="Aurora: luminous folded ribbons"></div>
@@ -64,7 +69,7 @@ element("#app").innerHTML = `
 			<div class="${styles["recipe-intro"]}"><span class="${styles["code-symbol"]}" aria-hidden="true">${icon("code")}</span><div><h2 id="recipe-heading">Take the effect with you.</h2><p>One element. Your colors. Your motion.</p></div><button type="button" id="copy">${icon("copy")}Copy recipe</button></div>
 			<details><summary>See the CSS and setup</summary><div class="${styles["recipe-code"]}"><pre><code id="css-code"></code></pre><pre><code id="js-code"></code></pre></div></details>
 		</section>
-		<section id="about" class="${styles["about"]}"><h2>Yes, this is a CSS background.</h2><p>Each experiment is a Houdini paint worklet: a small JavaScript painter that gives CSS a new kind of image. The animation is driven by a CSS custom property. No canvas elements, videos, or image sequences.</p><p>Made by Emilio Domínguez. Six independent packages, one shared studio. Chrome and Edge support CSS Paint; other browsers keep a static fallback. Motion pauses when the preview is out of view and respects your reduced-motion preference.</p></section>
+		<section id="about" class="${styles["about"]}"><h2>Yes, this is a CSS background.</h2><p>Each experiment is a Houdini paint worklet: a small JavaScript painter that gives CSS a new kind of image. The animation is driven by a CSS custom property. No canvas elements, videos, or image sequences.</p><p>Made by Emilio Domínguez. Nine independent packages, one shared studio. Chrome and Edge support CSS Paint; other browsers keep a static fallback. Motion pauses when the preview is out of view and respects your reduced-motion preference.</p></section>
 	</main>
 	<footer class="${styles["footer"]}"><span>Worklet Studio</span><span>Small packages. Unreasonable possibilities.</span></footer>
 	<p id="announcement" class="${styles["sr-only"]}" role="status" aria-live="polite"></p>
@@ -76,7 +81,7 @@ const pauseButton = element<HTMLButtonElement>("#pause");
 const globalControls: Control[] = [
 	{ property: "--worklet-hue", label: "Hue", min: 0, max: 360, step: 1, value: 220 },
 	{ property: "--worklet-intensity", label: "Light", min: 0.2, max: 2, step: 0.05, value: 1 },
-	{ property: "duration", label: "Loop duration", min: 8, max: 60, step: 1, value: 24 },
+	{ property: "duration", label: "Loop duration", min: 4, max: 60, step: 1, value: 24 },
 ];
 
 /** Apply pause, visibility, and reduced-motion state. */
@@ -103,7 +108,7 @@ function cssRecipe(): string {
 function jsRecipe(): string {
 	const effect = experiments[selected];
 	const pointer = effect.id === "cursor";
-	return `// Vite: import the worklet as a hosted asset.\nimport { register${pointer ? ", attachPointer" : ""} } from "${effect.id}-worklet/register";\nimport workletUrl from "${effect.id}-worklet/worklet.js?url";\n\nawait register(workletUrl);${pointer ? '\nconst cleanup = attachPointer(document.querySelector(".art"));\n// Call cleanup() when the element is removed.' : ""}\n\n// HTML: <div class="art"></div>`;
+	return `// Vite: import the worklet as a hosted asset.\nimport { register${pointer ? ", attachPointer" : ""} } from "${effect.id}-worklet/register";\nimport workletUrl from "${effect.id}-worklet/worklet.js?url";\n\nawait register(workletUrl);${pointer ? '\nconst cleanup = attachPointer(document.querySelector(".art"), { smoothing: 0.24, trail: 32 });\n// Call cleanup() when the element is removed.' : ""}\n\n// HTML: <div class="art"></div>`;
 }
 
 /** Update recipe text without recreating focused controls. */
@@ -136,7 +141,7 @@ function resetValues(): void {
 	values = { "--worklet-seed": 42, "--worklet-hue": 220, "--worklet-intensity": 1 };
 	for (const control of effect.controls) values[control.property] = control.value;
 	Object.assign(values, effect.presets[preset].values);
-	duration = 24;
+	duration = effect.id === "cursor" ? 8 : 24;
 }
 
 /** Render the chosen experiment. */
@@ -162,10 +167,20 @@ function renderEffect(): void {
 			return `<option value="${index}" ${index === preset ? "selected" : ""}>${item.name}</option>`;
 		})
 		.join("");
+	const shelf = element("#cursor-shelf");
+	shelf.hidden = effect.id !== "cursor";
+	shelf.innerHTML =
+		effect.id === "cursor"
+			? effect.presets
+					.map(function material(item, index) {
+						return `<button type="button" data-cursor-preset="${index}" aria-pressed="${index === preset}">${icon(String(item.values["--cursor-mode"]))}<span>${item.name}</span></button>`;
+					})
+					.join("")
+			: "";
 	renderControls();
 	applyValues();
 	updateMotion();
-	if (effect.id === "cursor" && ready) detachPointer = attachPointer(surface, { touch: true });
+	if (effect.id === "cursor" && ready) detachPointer = attachPointer(surface, { touch: true, smoothing: 0.24, trail: 32 });
 }
 
 /** Copy text and announce success or a useful failure. @param text Text to copy. @param message Success message. */
@@ -215,6 +230,14 @@ for (const button of document.querySelectorAll<HTMLButtonElement>("[data-effect]
 		renderEffect();
 	});
 }
+element("#cursor-shelf").addEventListener("click", function chooseMaterial(event) {
+	const button = (event.target as Element).closest<HTMLButtonElement>("[data-cursor-preset]");
+	if (!button) return;
+	preset = Number(button.dataset.cursorPreset);
+	resetValues();
+	renderEffect();
+	element<HTMLButtonElement>(`[data-cursor-preset="${preset}"]`).focus({ preventScroll: true });
+});
 element("#preset").addEventListener("change", function selectPreset(event) {
 	preset = Number((event.target as HTMLSelectElement).value);
 	resetValues();
@@ -282,6 +305,7 @@ new IntersectionObserver(function visibility(entries) {
 	updateMotion();
 }).observe(surface);
 window.addEventListener("hashchange", function sharedEffect() {
+	if (!location.hash.includes("effect=")) return;
 	readHash();
 	renderEffect();
 });

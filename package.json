@@ -12,7 +12,7 @@
 		"apps/*"
 	],
 	"scripts": {
-		"dev": "turbo run dev",
+		"dev": "turbo run dev --concurrency=16",
 		"build": "turbo run build",
 		"typecheck": "tsc --noEmit",
 		"test": "node --test tests/*.test.ts",

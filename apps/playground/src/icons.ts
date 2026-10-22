@@ -1,4 +1,13 @@
 const paths: Record<string, string> = {
+	caustics: '<path d="M2 8c3-5 5 5 8 0s5 5 8 0 4 0 4 0M2 16c3-5 5 5 8 0s5 5 8 0 4 0 4 0M8 2c-5 3 5 5 0 8s5 5 0 8m8-16c-5 3 5 5 0 8s5 5 0 8"/>',
+	vortex: '<ellipse cx="12" cy="13" rx="10" ry="3" transform="rotate(-15 12 13)"/><path d="M7 12a5 7 0 1 1 10 0"/><circle cx="12" cy="12" r="2.5"/>',
+	terrain: '<path d="M2 18c5 0 4-10 10-10s4 7 10 7M2 13c5 0 4-10 10-10s4 7 10 7M2 23c5 0 4-10 10-10s4 7 10 7"/>',
+	ribbon: '<path d="M3 18C3 1 21 23 21 5M3 13C7-4 17 29 21 10M3 8c5-9 13 17 18 7"/>',
+	comet: '<circle cx="17" cy="7" r="4"/><path d="m14 10-11 11m10-14-9 9m13-5-6 9"/>',
+	plasma: '<path d="M12 2c3 4 8 1 8 6s4 7-1 10-6 6-10 2-8-2-7-7 6-7 10-11Z"/><circle cx="12" cy="12" r="4"/>',
+	lens: '<circle cx="12" cy="12" r="9"/><path d="M6 11a6 6 0 0 1 5-5m7 7a6 6 0 0 1-5 5"/><circle cx="12" cy="12" r=".7"/>',
+	orbit: '<circle cx="12" cy="12" r="2"/><ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(-35 12 12)"/>',
+	rings: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
 	aurora: '<path d="M3 16C4 3 20 3 21 10S5 22 3 10s16-8 18 7"/>',
 	particles:
 		'<circle cx="5" cy="6" r="1.4"/><circle cx="17" cy="4" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="4" cy="18" r="1.4"/><circle cx="20" cy="18" r="1.4"/><path d="m6 7 5 4m2 0 3-6M5 17l6-4m2 0 6 4"/>',

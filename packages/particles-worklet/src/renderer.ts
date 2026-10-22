@@ -10,6 +10,7 @@ export const inputProperties = [
 	"--particles-background",
 	"--particles-glow",
 	"--particles-drift",
+	"--particles-layout",
 ];
 
 /** Render a deterministic constellation, with bounded spatial-neighbor searches. @param ctx Paint context. @param size CSS-pixel dimensions. @param properties CSS inputs. */
@@ -22,6 +23,7 @@ export function paint(ctx: PaintContext, size: PaintSize, properties: PaintPrope
 	const max = number(properties, "--particles-size-max", 2.4, min, 40);
 	const threshold = number(properties, "--particles-lines-threshold", 115, 0, 400);
 	const drift = number(properties, "--particles-drift", 35, 0, 200);
+	const galaxy = token(properties, "--particles-layout", "field") === "galaxy";
 	const bloom = number(properties, "--particles-glow", 1, 0, 2);
 	ctx.fillStyle = token(properties, "--particles-background", "#111");
 	ctx.fillRect(0, 0, size.width, size.height);
@@ -29,8 +31,15 @@ export function paint(ctx: PaintContext, size: PaintSize, properties: PaintPrope
 	const cells = new Map<string, number[]>();
 	const cellSize = Math.max(1, threshold);
 	for (let i = 0; i < count; i++) {
-		const x = next() * size.width + Math.sin(phase + next() * TAU) * drift;
-		const y = next() * size.height + Math.cos(phase + next() * TAU) * drift;
+		let x = next() * size.width + Math.sin(phase + next() * TAU) * drift;
+		let y = next() * size.height + Math.cos(phase + next() * TAU) * drift;
+		if (galaxy) {
+			const radial = Math.sqrt(Math.max(0, Math.min(1, x / size.width)));
+			const angle = ((i % 3) * TAU) / 3 + radial * 4.5 + phase + (y / size.height) * 0.5;
+			const extent = Math.min(size.width * 0.43, size.height * 0.65);
+			x = size.width / 2 + Math.cos(angle) * radial * extent;
+			y = size.height / 2 + Math.sin(angle) * radial * extent * 0.55 + Math.sin(i * 8.3) * drift * 0.2;
+		}
 		particles.push({ x, y, radius: min + next() * (max - min), hue: hue + next() * 85 });
 		const key = `${Math.floor(x / cellSize)},${Math.floor(y / cellSize)}`;
 		const bucket = cells.get(key) || [];
@@ -39,6 +48,8 @@ export function paint(ctx: PaintContext, size: PaintSize, properties: PaintPrope
 	}
 	ctx.save();
 	ctx.globalCompositeOperation = "lighter";
+	if (galaxy && count > 0)
+		glow(ctx, size.width / 2, size.height / 2, Math.min(size.width, size.height) * 0.35, `hsla(${hue + 40}, 85%, 65%, ${0.15 * intensity})`);
 	if (threshold > 0) {
 		for (let i = 0; i < count; i++) {
 			const a = particles[i];

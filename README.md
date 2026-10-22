@@ -1,15 +1,18 @@
 # Worklet Studio
 
-Six small CSS Houdini packages for unusually expressive backgrounds. A Turborepo with independent, zero-runtime-dependency worklets and a live visual playground.
+Nine small CSS Houdini packages for unusually expressive backgrounds. A Turborepo with independent, zero-runtime-dependency worklets and a live visual playground.
 
-| Package                                             | Paint name    | Effect                                                   |
-| --------------------------------------------------- | ------------- | -------------------------------------------------------- |
-| [particles-worklet](packages/particles-worklet)     | `particles`   | Stable, animated constellations with glowing connections |
-| [cursor-worklet](packages/cursor-worklet)           | `cursor`      | Animated ripple cursors and luminous orbital halos       |
-| [aurora-worklet](packages/aurora-worklet)           | `aurora`      | Folded spectral ribbons and auroral curtains             |
-| [flow-field-worklet](packages/flow-field-worklet)   | `flow-field`  | Generative magnetic streamlines                          |
-| [ripple-worklet](packages/ripple-worklet)           | `ripple`      | Liquid wavefronts and interference patterns              |
-| [iridescence-worklet](packages/iridescence-worklet) | `iridescence` | Shimmering foil and contour surfaces                     |
+| Package                                             | Paint name    | Effect                                                         |
+| --------------------------------------------------- | ------------- | -------------------------------------------------------------- |
+| [particles-worklet](packages/particles-worklet)     | `particles`   | Animated constellations and three-arm spiral galaxies          |
+| [cursor-worklet](packages/cursor-worklet)           | `cursor`      | Silk trails, comets, plasma, glass lenses, ripples, and orbits |
+| [aurora-worklet](packages/aurora-worklet)           | `aurora`      | Folded spectral ribbons and auroral curtains                   |
+| [flow-field-worklet](packages/flow-field-worklet)   | `flow-field`  | Generative magnetic streamlines                                |
+| [ripple-worklet](packages/ripple-worklet)           | `ripple`      | Liquid wavefronts and interference patterns                    |
+| [iridescence-worklet](packages/iridescence-worklet) | `iridescence` | Shimmering foil and contour surfaces                           |
+| [caustics-worklet](packages/caustics-worklet)       | `caustics`    | Curved underwater light cells                                  |
+| [vortex-worklet](packages/vortex-worklet)           | `vortex`      | Tilted accretion disks and gravitational light arcs            |
+| [terrain-worklet](packages/terrain-worklet)         | `terrain`     | Animated topographic wave contours                             |
 
 ## Run the studio
 
@@ -20,10 +23,10 @@ npm ci
 npm run dev
 ```
 
-Open **http://127.0.0.1:4173** in Chrome or Edge. The studio has 18 presets, live property controls, SVG icons, pause/full-screen controls, shareable settings, and copyable CSS/JavaScript recipes. It uses actual CSS Paint output; there are no canvas elements, image sequences, or videos.
+Open **http://127.0.0.1:4173** in Chrome or Edge. The studio has 33 presets, live property controls, SVG icons, pause/full-screen controls, shareable settings, and copyable CSS/JavaScript recipes. It uses actual CSS Paint output; there are no canvas elements, image sequences, or videos.
 
 ```sh
-npm run build        # Six standalone packages + production playground
+npm run build        # Nine standalone packages + production playground
 npm run typecheck    # Strict TypeScript
 npm test            # Determinism, bounded inputs, legacy APIs, registration
 npx playwright install chromium

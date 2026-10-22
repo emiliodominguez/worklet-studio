@@ -15,6 +15,7 @@ export type PaintContext = Pick<
 	| "beginPath"
 	| "moveTo"
 	| "lineTo"
+	| "quadraticCurveTo"
 	| "closePath"
 	| "arc"
 	| "ellipse"

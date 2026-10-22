@@ -1,4 +1,4 @@
-import { commonProperties, controls, drawable, number, random, TAU } from "../../core/src/index.ts";
+import { commonProperties, controls, drawable, glow, number, random, TAU } from "../../core/src/index.ts";
 import type { PaintContext, PaintSize, PaintProperties } from "../../core/src/types.ts";
 export const inputProperties = [...commonProperties, "--flow-density", "--flow-turbulence", "--flow-length", "--flow-vortex"];
 
@@ -18,8 +18,9 @@ export function paint(ctx: PaintContext, size: PaintSize, properties: PaintPrope
 	for (let line = 0; line < count; line++) {
 		let x = next() * size.width,
 			y = next() * size.height;
+		const start = { x, y };
 		const tint = hue + (x / size.width) * 95 + next() * 30;
-		const alpha = (0.12 + next() * 0.42) * intensity;
+		const alpha = (0.3 + next() * 0.6) * intensity;
 		ctx.strokeStyle = `hsla(${tint}, 85%, ${55 + next() * 25}%, ${alpha})`;
 		ctx.lineWidth = 0.45 + next() * 1.1;
 		ctx.beginPath();
@@ -34,7 +35,13 @@ export function paint(ctx: PaintContext, size: PaintSize, properties: PaintPrope
 			y += (Math.sin(angle * TAU * 0.3) * (1 - blend) + Math.sin(orbit) * blend) * scale * 0.007;
 			ctx.lineTo(x, y);
 		}
+		const gradient = ctx.createLinearGradient(start.x, start.y, x + 0.01, y + 0.01);
+		gradient.addColorStop(0, `hsla(${tint}, 85%, 65%, 0.02)`);
+		gradient.addColorStop(0.6, `hsla(${tint + 15}, 90%, 72%, ${alpha})`);
+		gradient.addColorStop(1, `hsla(${tint + 25}, 95%, 85%, ${alpha})`);
+		ctx.strokeStyle = gradient;
 		ctx.stroke();
+		if (line % 16 === 0) glow(ctx, x, y, 5, `hsla(${tint + 20}, 90%, 75%, ${0.35 * intensity})`);
 	}
 	ctx.restore();
 }

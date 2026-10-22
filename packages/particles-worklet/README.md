@@ -73,6 +73,7 @@ Register `--worklet-time` once in your document. Without an animation, the effec
 | `--particles-background`      | #111    | Any CSS color, including transparent         |
 | `--particles-glow`            | 1       | 0–2; 0 disables bloom                        |
 | `--particles-drift`           | 35      | 0–200 CSS px                                 |
+| `--particles-layout`          | field   | field or galaxy; seeded three-arm spiral     |
 
 Numeric values are finite and bounded; missing or malformed numeric values use defaults. Counts are integer-truncated unless stated otherwise. CSS colors should be valid explicit colors; Paint API `currentColor` does not resolve to the element's text color. Invalid colors follow the browser's Canvas style-assignment behavior.
 

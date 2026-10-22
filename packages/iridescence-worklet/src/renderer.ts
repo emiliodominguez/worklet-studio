@@ -5,6 +5,7 @@ export const inputProperties = [
 	"--iridescence-scale",
 	"--iridescence-ridges",
 	"--iridescence-shimmer",
+	"--iridescence-metallic",
 	"--iridescence-position-x",
 	"--iridescence-position-y",
 ];
@@ -16,21 +17,23 @@ export function paint(ctx: PaintContext, size: PaintSize, properties: PaintPrope
 	const frequency = number(properties, "--iridescence-scale", 2.4, 0.3, 8);
 	const ridges = number(properties, "--iridescence-ridges", 0.55, 0, 1);
 	const shimmer = number(properties, "--iridescence-shimmer", 0.65, 0, 1);
+	const metallic = number(properties, "--iridescence-metallic", 0.65, 0, 1);
 	const px = number(properties, "--iridescence-position-x", 0.5, 0, 1);
 	const py = number(properties, "--iridescence-position-y", 0.5, 0, 1);
-	const strips = 180,
+	const strips = 240,
 		steps = 48;
 	const t = phase + seed * 0.019;
 	ctx.save();
 	for (let row = -2; row <= strips + 2; row++) {
 		const v = row / strips;
 		const gradient = ctx.createLinearGradient(0, 0, size.width, 0);
-		for (let stop = 0; stop <= 8; stop++) {
-			const u = stop / 8;
+		for (let stop = 0; stop <= 64; stop++) {
+			const u = stop / 64;
 			const field = Math.sin(u * frequency * 2 + Math.sin(t) + px * 2) + Math.cos(v * frequency * 3 - Math.cos(t) + py * 2);
 			const sheen = Math.pow(Math.max(0, Math.sin(field * 2 + v * 5 + t)), 8) * shimmer;
-			const light = Math.min(94, 18 + intensity * (22 + sheen * 35 + Math.sin(field * 3) * 12));
-			gradient.addColorStop(u, `hsl(${hue + field * 80 + v * 120}, ${58 + sheen * 30}%, ${light}%)`);
+			const reflection = Math.pow(Math.max(0, Math.cos(field * 2.5 + u * 4 - py * 2)), 8) * metallic;
+			const light = Math.min(96, 12 + intensity * (16 + sheen * 26 + reflection * 50 + Math.sin(field * 3) * 10));
+			gradient.addColorStop(u, `hsl(${hue + field * 80 + v * 120}, ${Math.max(8, 65 - metallic * 20 - reflection * 42)}%, ${light}%)`);
 		}
 		ctx.fillStyle = gradient;
 		ctx.beginPath();

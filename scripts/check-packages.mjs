@@ -53,7 +53,7 @@ try {
 		})
 		.join("\n");
 	execFileSync(process.execPath, ["--input-type=module", "-e", imports], { cwd: temporary, stdio: "pipe" });
-	console.log("All six tarballs installed and imported successfully in an isolated consumer.");
+	console.log(`All ${directories.length} tarballs installed and imported successfully in an isolated consumer.`);
 } finally {
 	await rm(temporary, { recursive: true, force: true });
 }

@@ -650,3 +650,72 @@
 .about-link {
 	align-items: center;
 }
+
+.experiments {
+	flex-wrap: wrap;
+}
+.cursor-shelf {
+	display: flex;
+	gap: 7px;
+	margin: -2px 0 18px;
+	padding: 12px;
+	border: 1px solid #2b3140;
+	border-radius: 10px;
+	background-color: #161923;
+}
+.cursor-shelf button {
+	display: flex;
+	flex: 1;
+	align-items: center;
+	justify-content: center;
+	gap: 9px;
+	padding: 12px 10px;
+	border: 1px solid transparent;
+	border-radius: 6px;
+	background-color: transparent;
+	color: #aab4cc;
+	font-size: 12px;
+}
+.cursor-shelf svg {
+	width: 23px;
+	height: 23px;
+	flex-shrink: 0;
+}
+.cursor-shelf button:hover {
+	background-color: #232a3b;
+	color: #e5ebff;
+}
+.cursor-shelf button[aria-pressed="true"] {
+	border-color: #53638b;
+	background-color: #2c3650;
+	color: #edf1ff;
+}
+.stage-title {
+	max-width: calc(100% - 50px);
+}
+@media (width < 900px) {
+	.cursor-shelf {
+		flex-wrap: wrap;
+	}
+	.cursor-shelf button {
+		flex: 1 0 20%;
+	}
+}
+@media (width < 760px) {
+	.experiments {
+		flex-wrap: nowrap;
+	}
+	.cursor-shelf {
+		gap: 4px;
+		padding: 8px;
+	}
+	.cursor-shelf button {
+		padding: 10px 5px;
+		font-size: 10px;
+		gap: 6px;
+	}
+	.cursor-shelf svg {
+		width: 19px;
+		height: 19px;
+	}
+}

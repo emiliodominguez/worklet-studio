@@ -10,7 +10,10 @@ import { color, number, random } from "../packages/core/src/index.ts";
 import { loadWorklet } from "../packages/core/src/register.ts";
 import type { PaintContext, Painter } from "../packages/core/src/types.ts";
 
-const painters = { aurora, particles, cursor, flow, ripple, iridescence };
+import { paint as caustics } from "../packages/caustics-worklet/src/renderer.ts";
+import { paint as vortex } from "../packages/vortex-worklet/src/renderer.ts";
+import { paint as terrain } from "../packages/terrain-worklet/src/renderer.ts";
+const painters = { aurora, particles, cursor, flow, ripple, iridescence, caustics, vortex, terrain };
 
 /** Record the supported paint operations and reject invalid geometry. @param painter Painter to invoke. @param values CSS inputs. @param width Surface width. @param height Surface height. @returns Recorded operations. */
 function render(painter: Painter, values: Record<string, string | number> = {}, width = 800, height = 500): unknown[][] {
@@ -19,6 +22,7 @@ function render(painter: Painter, values: Record<string, string | number> = {}, 
 		"beginPath",
 		"moveTo",
 		"lineTo",
+		"quadraticCurveTo",
 		"closePath",
 		"arc",
 		"ellipse",
@@ -228,5 +232,29 @@ test("registration deduplicates concurrent loads and allows retries after reject
 	} finally {
 		if (previous) Object.defineProperty(globalThis, "CSS", previous);
 		else Reflect.deleteProperty(globalThis, "CSS");
+	}
+});
+
+test("all six cursor materials render and respond to CSS time", function cursorMaterials() {
+	for (const mode of ["rings", "orbit", "ribbon", "comet", "plasma", "lens"]) {
+		const inputs = { "--cursor-mode": mode, "--worklet-time": 0.2 };
+		const first = render(cursor, inputs);
+		assert.ok(first.length > 20, mode);
+		assert.deepEqual(render(cursor, inputs), first);
+		assert.notDeepEqual(render(cursor, { ...inputs, "--worklet-time": 0.7 }), first, mode);
+		assert.notDeepEqual(render(cursor, { ...inputs, "--cursor-press": 1 }), first, mode);
+	}
+});
+
+test("trail painters accept malformed and excessive history safely", function trailSafety() {
+	for (const mode of ["ribbon", "comet"]) {
+		assert.doesNotThrow(function malformed() {
+			render(cursor, { "--cursor-mode": mode, "--cursor-trail": "NaN Infinity 2 broken -1e40 20" });
+		});
+		const repeated = Array.from({ length: 2000 }, function point() {
+			return "100 100";
+		}).join(" ");
+		const output = render(cursor, { "--cursor-mode": mode, "--cursor-trail": repeated });
+		assert.ok(output.length < 15000);
 	}
 });

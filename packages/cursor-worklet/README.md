@@ -1,6 +1,6 @@
 # cursor-worklet
 
-Luminous, pointer-reactive CSS cursor halos and orbital trails.
+Six animated cursor materials: flowing silk ribbons, fiery comets, sculpted plasma, chromatic glass lenses, expanding ripples, and orbital halos.
 
 Zero runtime dependencies. One self-contained paint module, a minified alternative, and an optional typed loader. This checkout contains an **unpublished 1.1.0 candidate**; install a locally packed tarball until this version is released.
 
@@ -60,23 +60,27 @@ Register `--worklet-time` once in your document. Without an animation, the effec
 
 ## CSS inputs
 
-| Property                   | Default                | Meaning                                      |
-| -------------------------- | ---------------------- | -------------------------------------------- |
-| `--worklet-time`           | 0                      | One loop is 0–1; animate a registered number |
-| `--worklet-seed`           | 42                     | Repeatable variation                         |
-| `--worklet-hue`            | 225                    | Base hue in degrees, clamped to -3600–3600   |
-| `--worklet-intensity`      | 1                      | 0–2 light multiplier                         |
-| `--cursor-ripples`         | 5                      | 0–24 rings                                   |
-| `--cursor-size`            | 18                     | 0–250 CSS px                                 |
-| `--cursor-border-size`     | 1                      | 0–20 CSS px; 0 disables outlines             |
-| `--cursor-fill-color`      | Hue-derived light blue | CSS color or legacy RGB triplet              |
-| `--cursor-stroke-color`    | Hue-derived pale blue  | CSS color or legacy RGB triplet              |
-| `--cursor-color-intensity` | 0.6                    | 0–1 opacity                                  |
-| `--cursor-position-x`      | Element center         | Local CSS px, including zero                 |
-| `--cursor-position-y`      | Element center         | Local CSS px, including zero                 |
-| `--cursor-mode`            | rings                  | rings or orbit                               |
-| `--cursor-orbit`           | 1                      | 0.1–3 orbital size multiplier                |
-| `--cursor-glow`            | 1                      | 0–2 orbital bloom                            |
+| Property                   | Default                | Meaning                                            |
+| -------------------------- | ---------------------- | -------------------------------------------------- |
+| `--worklet-time`           | 0                      | One loop is 0–1; animate a registered number       |
+| `--worklet-seed`           | 42                     | Repeatable variation                               |
+| `--worklet-hue`            | 225                    | Base hue in degrees, clamped to -3600–3600         |
+| `--worklet-intensity`      | 1                      | 0–2 light multiplier                               |
+| `--cursor-ripples`         | 5                      | 0–24 rings                                         |
+| `--cursor-size`            | 18                     | 0–250 CSS px                                       |
+| `--cursor-border-size`     | 1                      | 0–20 CSS px; 0 disables outlines                   |
+| `--cursor-fill-color`      | Hue-derived light blue | CSS color or legacy RGB triplet                    |
+| `--cursor-stroke-color`    | Hue-derived pale blue  | CSS color or legacy RGB triplet                    |
+| `--cursor-color-intensity` | 0.6                    | 0–1 opacity                                        |
+| `--cursor-position-x`      | Element center         | Local CSS px, including zero                       |
+| `--cursor-position-y`      | Element center         | Local CSS px, including zero                       |
+| `--cursor-mode`            | rings                  | rings, orbit, ribbon, comet, plasma, or lens       |
+| `--cursor-orbit`           | 1                      | 0.1–3 orbital size multiplier                      |
+| `--cursor-glow`            | 1                      | 0–2 orbital bloom                                  |
+| `--cursor-trail`           | Empty                  | Newest-first local x y pairs; up to 32 points      |
+| `--cursor-speed`           | 0                      | 0–60; ribbon spread, normally set by attachPointer |
+| `--cursor-press`           | 0                      | 0–1; material compression                          |
+| `--cursor-twist`           | 1                      | 0–3; ribbon and plasma deformation                 |
 
 Numeric values are finite and bounded; missing or malformed numeric values use defaults. Counts are integer-truncated unless stated otherwise. CSS colors should be valid explicit colors; Paint API `currentColor` does not resolve to the element's text color. Invalid colors follow the browser's Canvas style-assignment behavior.
 
@@ -93,11 +97,13 @@ MIT © Emilio Domínguez.
 ```js
 import { attachPointer } from "cursor-worklet/register";
 
-const cleanup = attachPointer(document.querySelector(".art"));
+const cleanup = attachPointer(document.querySelector(".art"), { smoothing: 0.24, trail: 32 });
 // On unmount or removal:
 cleanup();
 ```
 
-`attachPointer(element, { touch: true })` optionally follows touch pointers without preventing scrolling. Updates are batched with requestAnimationFrame. Cleanup removes listeners, cancels queued writes, and restores prior inline coordinate properties. Positions use local CSS pixels and support axis-aligned scaling; rotated or skewed targets need your own coordinate mapping. The native cursor stays visible.
+`attachPointer(element, { touch: true })` optionally follows touch pointers without preventing scrolling. Updates are batched with requestAnimationFrame and stop when the trail settles. Cleanup removes every listener, cancels queued writes, and restores all five prior inline properties, including their priorities. Reduced motion disables smoothing and history; hidden documents suspend updates. Positions use local CSS pixels and support axis-aligned scaling; rotated or skewed targets need your own coordinate mapping. The native cursor stays visible.
 
-The default `rings` mode preserves the original concentric cursor and now explicitly expands/fades with `--worklet-time`. Set `--cursor-mode: orbit` for the new animated orbital halo. Both modes also respond to the original `--cursor-position-x` and `--cursor-position-y` controls.
+The default `rings` mode preserves the original concentric cursor and now explicitly expands/fades with `--worklet-time`. Choose `orbit`, `ribbon`, `comet`, `plasma`, or `lens` for the other materials. Every mode responds to the original `--cursor-position-x` and `--cursor-position-y` controls. Ribbon and comet modes use bounded pointer history; before interaction, they show a procedural animated tail. Pressing compresses the shape and changes its glow.
+
+Pointer options: `smoothing` is the fraction covered per 60 Hz frame, bounded to 0.05–1 (default 1); `trail` is bounded to 2–32 history points (default 24). `touch` defaults to false. Lower smoothing makes the light follow more softly. The helper controls `--cursor-position-x`, `--cursor-position-y`, `--cursor-trail`, `--cursor-speed`, and `--cursor-press`; CSS controls the animation clock.

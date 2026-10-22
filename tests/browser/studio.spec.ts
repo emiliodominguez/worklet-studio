@@ -1,8 +1,8 @@
 import { test, expect } from "@playwright/test";
 
-const names = ["Aurora", "Particles", "Cursor", "Flow field", "Ripples", "Iridescence"];
+const names = ["Aurora", "Particles", "Cursor", "Flow field", "Ripples", "Iridescence", "Caustics", "Vortex", "Terrain"];
 
-test("all six actual paint worklets render, animate, and expose working presets", async function rendering({ page }) {
+test("all nine actual paint worklets render, animate, and expose working presets", async function rendering({ page }) {
 	const errors: string[] = [];
 	page.on("pageerror", function error(value) {
 		errors.push(value.message);
@@ -101,6 +101,16 @@ test("reduced motion and mobile layout remain usable", async function accessibil
 		}),
 	).toBe(true);
 	await page.screenshot({ path: "artifacts/studio-mobile.png", fullPage: true });
+	await page.getByRole("button", { name: "Cursor", exact: true }).click();
+	await expect(page.getByRole("group", { name: "Cursor materials" })).toBeVisible();
+	await page.getByRole("button", { name: "Plasma", exact: true }).click();
+	await expect(page.getByLabel("Preset", { exact: true })).toHaveValue("3");
+	expect(
+		await page.evaluate(function overflow() {
+			return document.documentElement.scrollWidth <= innerWidth;
+		}),
+	).toBe(true);
+	await page.screenshot({ path: "artifacts/studio-cursor-mobile.png", fullPage: true });
 });
 
 test("unsupported browsers get an explicit, usable fallback", async function fallback({ page }) {
@@ -141,4 +151,95 @@ test("original cursor ripples animate without pointer movement", async function 
 	expect(before.equals(await surface.screenshot())).toBe(false);
 	await page.getByRole("button", { name: "Pause motion" }).click();
 	await expect(surface).toHaveCSS("animation-play-state", "paused");
+});
+
+test("all cursor materials paint distinctly and the preset shelf stays in sync", async function cursorMaterials({ page }) {
+	await page.goto("/#effect=cursor");
+	await expect(page.locator("html")).toHaveAttribute("data-ready", "true");
+	const errors: string[] = [];
+	page.on("pageerror", function error(value) {
+		errors.push(value.message);
+	});
+	const surface = page.locator("#surface"),
+		images: Buffer[] = [];
+	for (const name of ["Silk", "Comet", "Original", "Plasma", "Glass", "Atom"]) {
+		await page.getByRole("button", { name, exact: true }).click();
+		await expect(page.getByRole("button", { name, exact: true })).toHaveAttribute("aria-pressed", "true");
+		await expect(page.getByRole("button", { name, exact: true })).toBeFocused();
+		await surface.evaluate(function freeze(node) {
+			node.style.animation = "none";
+			node.style.setProperty("--worklet-time", "0.25");
+		});
+		const shot = await surface.screenshot();
+		for (const previous of images) expect(previous.equals(shot), `${name} must have its own silhouette`).toBe(false);
+		images.push(shot);
+	}
+	expect(errors).toEqual([]);
+});
+
+test("cursor history is bounded, press releases outside, and cleanup removes all writes", async function cursorInteraction({ page }) {
+	await page.goto("/#effect=cursor");
+	await expect(page.locator("html")).toHaveAttribute("data-ready", "true");
+	const surface = page.locator("#surface"),
+		box = (await surface.boundingBox())!;
+	for (let step = 0; step < 12; step++) {
+		await page.mouse.move(box.x + 160 + step * 25, box.y + 200 + Math.sin(step) * 35);
+		await page.evaluate(function frame() {
+			return new Promise(requestAnimationFrame);
+		});
+	}
+	const points = await surface.evaluate(function trail(node) {
+		return node.style.getPropertyValue("--cursor-trail").trim().split(/\s+/).map(Number);
+	});
+	expect(points.length).toBeGreaterThan(4);
+	expect(points.length).toBeLessThanOrEqual(64);
+	expect(points.every(Number.isFinite)).toBe(true);
+	await page.mouse.down();
+	await expect
+		.poll(async function press() {
+			return surface.evaluate(function pressure(node) {
+				return Number(node.style.getPropertyValue("--cursor-press"));
+			});
+		})
+		.toBeGreaterThan(0.8);
+	await page.mouse.move(10, 10);
+	await page.mouse.up();
+	await expect
+		.poll(async function release() {
+			return surface.evaluate(function pressure(node) {
+				return Number(node.style.getPropertyValue("--cursor-press"));
+			});
+		})
+		.toBe(0);
+	await page.getByRole("button", { name: "Aurora", exact: true }).click();
+	expect(
+		await surface.evaluate(function clean(node) {
+			return [...node.style].filter(function property(name) {
+				return name.startsWith("--cursor-");
+			});
+		}),
+	).toEqual([]);
+});
+
+test("reduced-motion cursors follow directly without a decorative trail", async function reducedCursor({ page }) {
+	await page.emulateMedia({ reducedMotion: "reduce" });
+	await page.goto("/#effect=cursor");
+	await expect(page.locator("html")).toHaveAttribute("data-ready", "true");
+	const surface = page.locator("#surface"),
+		box = (await surface.boundingBox())!;
+	await page.mouse.move(box.x + 150, box.y + 200);
+	await page.mouse.move(box.x + 270, box.y + 240);
+	await expect
+		.poll(async function current() {
+			return surface.evaluate(function x(node) {
+				return Number(node.style.getPropertyValue("--cursor-position-x"));
+			});
+		})
+		.toBeCloseTo(270, 0);
+	expect(
+		await surface.evaluate(function history(node) {
+			return node.style.getPropertyValue("--cursor-trail").trim().split(/\s+/).length;
+		}),
+	).toBe(2);
+	await expect(surface).toHaveCSS("animation-name", "none");
 });

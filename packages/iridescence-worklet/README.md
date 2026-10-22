@@ -71,6 +71,7 @@ Register `--worklet-time` once in your document. Without an animation, the effec
 | `--iridescence-shimmer`    | 0.65    | 0–1 sheen                                    |
 | `--iridescence-position-x` | 0.5     | 0–1 normalized light position                |
 | `--iridescence-position-y` | 0.5     | 0–1 normalized light position                |
+| `--iridescence-metallic`   | 0.65    | 0–1; reflective highlight strength           |
 
 Numeric values are finite and bounded; missing or malformed numeric values use defaults. Counts are integer-truncated unless stated otherwise. CSS colors should be valid explicit colors; Paint API `currentColor` does not resolve to the element's text color. Invalid colors follow the browser's Canvas style-assignment behavior.
 
