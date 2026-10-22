@@ -1,0 +1,9 @@
+node_modules/
+.turbo/
+dist/
+packages/*/worklet.js
+packages/*/worklet.min.js
+test-results/
+playwright-report/
+.DS_Store
+artifacts/

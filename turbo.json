@@ -1,0 +1,8 @@
+{
+	"$schema": "https://turborepo.dev/schema.json",
+	"globalDependencies": ["scripts/build-package.mjs", "tsconfig.json"],
+	"tasks": {
+		"build": { "dependsOn": ["^build"], "outputs": ["dist/**", "worklet.js", "worklet.min.js"] },
+		"dev": { "dependsOn": ["^build"], "cache": false, "persistent": true }
+	}
+}

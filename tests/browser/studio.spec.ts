@@ -1,0 +1,144 @@
+import { test, expect } from "@playwright/test";
+
+const names = ["Aurora", "Particles", "Cursor", "Flow field", "Ripples", "Iridescence"];
+
+test("all six actual paint worklets render, animate, and expose working presets", async function rendering({ page }) {
+	const errors: string[] = [];
+	page.on("pageerror", function error(value) {
+		errors.push(value.message);
+	});
+	page.on("console", function error(message) {
+		if (message.type() === "error") errors.push(message.text());
+	});
+	await page.goto("/");
+	await expect(page.locator("html")).toHaveAttribute("data-ready", "true");
+	for (const name of names) {
+		await page.getByRole("button", { name, exact: true }).click();
+		const surface = page.locator("#surface");
+		await surface.evaluate(function freeze(node) {
+			node.style.animation = "none";
+			node.style.setProperty("--worklet-time", "0.2");
+		});
+		await expect(surface).toHaveCSS("background-image", /^paint\(/);
+		const painted = await surface.screenshot({ path: `artifacts/${name.toLowerCase().replaceAll(" ", "-")}.png` });
+		await surface.evaluate(function hide(node) {
+			node.dataset.image = node.style.backgroundImage;
+			node.style.backgroundImage = "none";
+		});
+		const blank = await surface.screenshot();
+		expect(painted.equals(blank), `${name} must paint visible pixels`).toBe(false);
+		await surface.evaluate(function animate(node) {
+			node.style.backgroundImage = node.dataset.image!;
+			node.style.setProperty("--worklet-time", "0.65");
+		});
+		const moved = await surface.screenshot();
+		expect(moved.equals(painted), `${name} should change with time`).toBe(false);
+		await page.getByLabel("Preset", { exact: true }).selectOption("1");
+		await expect(page.locator("#css-code")).toContainText("--worklet-hue:");
+	}
+	expect(errors).toEqual([]);
+	await page.getByRole("button", { name: "Aurora", exact: true }).click();
+	await page.screenshot({ path: "artifacts/studio-desktop.png", fullPage: true });
+});
+
+test("controls, reset, motion, copy, and shared settings work", async function controls({ page, context }) {
+	await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+	await page.goto("/");
+	await expect(page.locator("html")).toHaveAttribute("data-ready", "true");
+	await page.getByLabel("Threads", { exact: true }).fill("155");
+	await expect(page.locator("#css-code")).toContainText("--aurora-ribbons: 155");
+	await page.getByRole("button", { name: "Pause motion" }).click();
+	await expect(page.locator("#surface")).toHaveCSS("animation-play-state", "paused");
+	await page.getByRole("button", { name: "Copy recipe" }).click();
+	const recipe = await page.evaluate(function readClipboard() {
+		return navigator.clipboard.readText();
+	});
+	expect(recipe).toContain("--aurora-ribbons: 155");
+	expect(recipe).toContain("aurora-worklet/worklet.js?url");
+	await page.getByRole("button", { name: "Copy link" }).click();
+	const url = await page.evaluate(function readClipboard() {
+		return navigator.clipboard.readText();
+	});
+	await page.goto(url);
+	await expect(page.getByLabel("Threads", { exact: true })).toHaveValue("155");
+	await page.getByRole("button", { name: "Reset", exact: true }).click();
+	await expect(page.getByLabel("Threads", { exact: true })).toHaveValue("110");
+});
+
+test("pointer follows local coordinates and stops writing after changing effect", async function pointer({ page }) {
+	await page.goto("/");
+	await expect(page.locator("html")).toHaveAttribute("data-ready", "true");
+	await page.getByRole("button", { name: "Cursor", exact: true }).click();
+	const surface = page.locator("#surface"),
+		box = (await surface.boundingBox())!;
+	await page.mouse.move(box.x + 130, box.y + 170);
+	await expect
+		.poll(async function xPosition() {
+			return surface.evaluate(function x(node) {
+				return Number(node.style.getPropertyValue("--cursor-position-x"));
+			});
+		})
+		.toBeCloseTo(130, 0);
+	await page.getByRole("button", { name: "Aurora", exact: true }).click();
+	await page.mouse.move(box.x + 190, box.y + 220);
+	expect(
+		await surface.evaluate(function x(node) {
+			return node.style.getPropertyValue("--cursor-position-x");
+		}),
+	).toBe("");
+});
+
+test("reduced motion and mobile layout remain usable", async function accessibility({ page }) {
+	await page.emulateMedia({ reducedMotion: "reduce" });
+	await page.setViewportSize({ width: 390, height: 844 });
+	await page.goto("/");
+	await expect(page.locator("html")).toHaveAttribute("data-ready", "true");
+	await expect(page.locator("#surface")).toHaveCSS("animation-name", "none");
+	await expect(page.getByRole("button", { name: "Play motion" })).toBeDisabled();
+	expect(
+		await page.evaluate(function overflow() {
+			return document.documentElement.scrollWidth <= innerWidth;
+		}),
+	).toBe(true);
+	await page.screenshot({ path: "artifacts/studio-mobile.png", fullPage: true });
+});
+
+test("unsupported browsers get an explicit, usable fallback", async function fallback({ page }) {
+	await page.addInitScript(function unsupported() {
+		Object.defineProperty(CSS, "paintWorklet", { value: undefined });
+	});
+	await page.goto("/");
+	await expect(page.locator("#fallback")).toBeVisible();
+	await expect(page.locator("#status")).toHaveText("CSS Paint unavailable");
+	await page.getByRole("button", { name: "Particles", exact: true }).click();
+	await expect(page.locator("#css-code")).toContainText("paint(particles)");
+});
+
+test("worklet network failures show a retry action", async function networkFailure({ page, context }) {
+	await context.route(/worklet(?:-[a-zA-Z0-9_-]+)?\.js/, async function fail(route) {
+		if (new URL(route.request().url()).searchParams.has("url")) await route.continue();
+		else await route.abort();
+	});
+	await page.goto("/");
+	await expect(page.locator("#fallback")).toBeVisible();
+	await expect(page.getByRole("button", { name: "Try again" })).toBeVisible();
+});
+
+test("original cursor ripples animate without pointer movement", async function originalCursor({ page }) {
+	await page.goto("/");
+	await expect(page.locator("html")).toHaveAttribute("data-ready", "true");
+	await page.getByRole("button", { name: "Cursor", exact: true }).click();
+	await page.getByLabel("Preset", { exact: true }).selectOption("2");
+	const surface = page.locator("#surface");
+	await surface.evaluate(function first(node) {
+		node.style.animation = "none";
+		node.style.setProperty("--worklet-time", "0.1");
+	});
+	const before = await surface.screenshot();
+	await surface.evaluate(function later(node) {
+		node.style.setProperty("--worklet-time", "0.8");
+	});
+	expect(before.equals(await surface.screenshot())).toBe(false);
+	await page.getByRole("button", { name: "Pause motion" }).click();
+	await expect(surface).toHaveCSS("animation-play-state", "paused");
+});

@@ -1,0 +1,10 @@
+node_modules
+.turbo
+dist
+recovery
+artifacts
+test-results
+playwright-report
+package-lock.json
+packages/*/worklet.js
+packages/*/worklet.min.js

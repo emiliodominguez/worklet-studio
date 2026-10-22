@@ -1,0 +1,652 @@
+@property --worklet-time {
+	syntax: "<number>";
+	inherits: false;
+	initial-value: 0;
+}
+
+:global(*) {
+	box-sizing: border-box;
+}
+:global(html) {
+	color-scheme: dark;
+	scroll-behavior: smooth;
+}
+:global(body) {
+	margin: 0;
+	background-color: #101219;
+	color: #f0f2fa;
+	font-family: "Avenir Next", Avenir, "Segoe UI", sans-serif;
+	-webkit-font-smoothing: antialiased;
+}
+:global(button),
+:global(select),
+:global(input) {
+	font: inherit;
+}
+:global(button),
+:global(select) {
+	color: inherit;
+}
+:global(button) {
+	cursor: pointer;
+}
+:global(button:disabled) {
+	cursor: default;
+	opacity: 0.6;
+}
+:global(a) {
+	color: inherit;
+	text-decoration: none;
+}
+:global(button:focus-visible),
+:global(a:focus-visible),
+:global(input:focus-visible),
+:global(select:focus-visible),
+:global(summary:focus-visible) {
+	outline: 2px solid #c1caff;
+	outline-offset: 5px;
+}
+:global([hidden]) {
+	display: none !important;
+}
+.header,
+.main,
+.footer {
+	width: min(1480px, calc(100% - 96px));
+	margin-inline: auto;
+}
+.header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	min-height: 100px;
+}
+.brand {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	font-weight: 650;
+	font-size: 17px;
+	letter-spacing: -0.5px;
+}
+.brand-mark {
+	display: grid;
+	place-items: center;
+	width: 30px;
+	height: 30px;
+	font-family: Georgia, serif;
+	font-size: 29px;
+	font-style: italic;
+	color: #c6ceff;
+	transform: rotate(-10deg);
+}
+.about-link {
+	font-size: 13px;
+	color: #aab0c2;
+	display: flex;
+	gap: 15px;
+}
+.intro {
+	display: flex;
+	align-items: end;
+	justify-content: space-between;
+	gap: 30px;
+	padding-block: 32px 45px;
+}
+.intro h1 {
+	font-size: clamp(32px, 3.4vw, 52px);
+	line-height: 1.08;
+	letter-spacing: -2.4px;
+	font-weight: 500;
+	margin: 0;
+}
+.intro p {
+	color: #a2a9bb;
+	font-size: 13px;
+	line-height: 1.8;
+	margin: 0 0 1px;
+}
+.experiments {
+	display: flex;
+	align-items: center;
+	gap: 9px;
+	padding-bottom: 20px;
+	overflow-x: auto;
+}
+.experiments button {
+	display: flex;
+	align-items: center;
+	gap: 9px;
+	padding: 10px 17px;
+	border: 1px solid transparent;
+	border-radius: 7px;
+	background-color: transparent;
+	color: #a2a9bb;
+	font-size: 13px;
+	white-space: nowrap;
+}
+.experiments button span {
+	font-size: 19px;
+	line-height: 1;
+	color: #aeb9eb;
+}
+.experiments button:hover {
+	color: #fff;
+	background-color: #1d2130;
+}
+.experiments button[aria-pressed="true"] {
+	background-color: #252b3d;
+	color: #f0f2fa;
+	border-color: #3b435c;
+}
+.studio {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 300px;
+	gap: 24px;
+}
+.stage {
+	position: relative;
+	min-height: 620px;
+	overflow: hidden;
+	border-radius: 13px;
+	background-color: #080a10;
+	border: 1px solid #292e3b;
+	isolation: isolate;
+}
+.surface {
+	position: absolute;
+	inset: 0;
+	background-color: #080a10;
+	background-image: linear-gradient(145deg, #131c32, #080a10 45%, #201629);
+	animation: cycle 24s linear infinite;
+}
+.stage-top,
+.stage-bottom {
+	position: absolute;
+	left: 25px;
+	right: 25px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	z-index: 1;
+}
+.stage-top {
+	top: 23px;
+	pointer-events: none;
+	font-size: 11px;
+	color: #929bb3;
+}
+.stage-top > :first-child {
+	font-family: ui-monospace, "SFMono-Regular", monospace;
+}
+.stage-top > :last-child {
+	display: flex;
+	align-items: center;
+	gap: 7px;
+}
+.stage-top > :last-child::before {
+	content: "";
+	height: 5px;
+	width: 5px;
+	border-radius: 50%;
+	background-color: #b3c2f6;
+}
+.stage-title {
+	position: absolute;
+	left: 28px;
+	bottom: 83px;
+	pointer-events: none;
+	text-shadow: 0 2px 20px #000;
+}
+.stage-title > span {
+	font-size: 11px;
+	color: #bfc6dc;
+}
+.stage-title p {
+	font-size: clamp(24px, 2.6vw, 37px);
+	font-weight: 400;
+	letter-spacing: -1.3px;
+	margin: 7px 0 0;
+}
+.stage-bottom {
+	bottom: 22px;
+	color: #aeb5c9;
+	font-size: 11px;
+}
+.stage-bottom button {
+	border: 1px solid #ffffff26;
+	background-color: #101219c9;
+	padding: 9px 12px;
+	border-radius: 6px;
+	font-size: 11px;
+}
+.stage-bottom button:last-child {
+	font-size: 21px;
+	padding: 3px 10px;
+}
+.stage-bottom span {
+	opacity: 0.8;
+}
+.stage:fullscreen {
+	border-radius: 0;
+	width: 100vw;
+	height: 100vh;
+}
+.inspector {
+	padding: 15px 0 0 4px;
+}
+.inspector-heading {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+.inspector-heading h2 {
+	margin: 0;
+	font-size: 22px;
+	font-weight: 500;
+	letter-spacing: -0.5px;
+}
+.inspector-heading button {
+	border: 0;
+	padding: 7px 0 7px 12px;
+	background-color: transparent;
+	font-size: 11px;
+	color: #b4bdd3;
+}
+.description {
+	font-size: 12px;
+	line-height: 1.8;
+	color: #a2a9bb;
+	margin: 12px 0 23px;
+	min-height: 64px;
+}
+.preset-label {
+	display: block;
+	color: #a2a9bb;
+	font-size: 11px;
+	margin-bottom: 9px;
+}
+.inspector select {
+	width: 100%;
+	padding: 10px 12px;
+	border: 1px solid #343b4c;
+	border-radius: 6px;
+	background-color: #1b1f2a;
+	font-size: 12px;
+}
+.controls {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+	padding-top: 27px;
+}
+.control {
+	display: grid;
+	grid-template-columns: 1fr auto;
+	align-items: center;
+	gap: 9px;
+	font-size: 11px;
+}
+.control label {
+	color: #c2c9da;
+}
+.control output {
+	color: #a0aac4;
+	font-variant-numeric: tabular-nums;
+}
+.control input {
+	grid-column: 1 / -1;
+	width: 100%;
+	margin: 0;
+	height: 4px;
+	appearance: none;
+	background-color: #333a4e;
+	border-radius: 4px;
+	cursor: pointer;
+}
+.control input::-webkit-slider-thumb {
+	appearance: none;
+	width: 11px;
+	height: 11px;
+	background-color: #d6ddff;
+	border: 2px solid #232b40;
+	border-radius: 50%;
+	box-shadow: 0 0 0 1px #a9b9ff;
+}
+.control input::-moz-range-thumb {
+	width: 9px;
+	height: 9px;
+	background-color: #d6ddff;
+	border: 2px solid #232b40;
+	border-radius: 50%;
+}
+.control input.hue {
+	background-image: linear-gradient(90deg, #ed7979, #e4df83, #8fe7ad, #8edce9, #8490e7, #d787d8, #ed7979);
+}
+.inspector-actions {
+	display: flex;
+	gap: 10px;
+	margin-top: 29px;
+}
+.inspector-actions button {
+	flex: 1;
+	border: 1px solid #343b4c;
+	background-color: #1b1f2a;
+	border-radius: 6px;
+	padding: 10px 6px;
+	font-size: 11px;
+}
+.inspector-actions button:hover,
+.recipe-intro button:hover {
+	background-color: #30384c;
+}
+.recipe {
+	margin-top: 26px;
+	border: 1px solid #2b3140;
+	border-radius: 10px;
+	background-color: #161923;
+}
+.recipe-intro {
+	padding: 23px 25px;
+	display: flex;
+	align-items: center;
+	gap: 20px;
+}
+.code-symbol {
+	font-size: 20px;
+	color: #a9b9ff;
+}
+.recipe-intro h2 {
+	font-weight: 500;
+	font-size: 15px;
+	margin: 0 0 4px;
+}
+.recipe-intro p {
+	margin: 0;
+	font-size: 12px;
+	color: #a2a9bb;
+}
+.recipe-intro button {
+	margin-left: auto;
+	border: 1px solid #444e6c;
+	background-color: #29334e;
+	border-radius: 6px;
+	padding: 10px 16px;
+	font-size: 12px;
+}
+.recipe details {
+	border-top: 1px solid #2b3140;
+}
+.recipe summary {
+	font-size: 12px;
+	padding: 15px 25px;
+	color: #a2a9bb;
+	cursor: pointer;
+}
+.recipe-code {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	border-top: 1px solid #2b3140;
+}
+.recipe pre {
+	margin: 0;
+	padding: 24px;
+	overflow-x: auto;
+	font-size: 11px;
+	line-height: 1.8;
+	color: #bcc9f6;
+}
+.recipe pre + pre {
+	border-left: 1px solid #2b3140;
+}
+.about {
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+	gap: 42px;
+	padding: 65px 0 55px;
+}
+.about h2 {
+	font-size: 23px;
+	font-weight: 500;
+	letter-spacing: -0.6px;
+	margin: 0;
+	max-width: 260px;
+}
+.about p {
+	font-size: 12px;
+	line-height: 1.9;
+	color: #a2a9bb;
+	margin: 0;
+}
+.footer {
+	display: flex;
+	justify-content: space-between;
+	padding: 25px 0 35px;
+	border-top: 1px solid #292e3b;
+	font-size: 11px;
+	color: #8992a9;
+}
+.fallback {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 50px;
+	text-align: center;
+	background-color: #101219bb;
+}
+.fallback h2 {
+	font-size: 24px;
+	max-width: 320px;
+}
+.fallback p {
+	max-width: 360px;
+	font-size: 14px;
+	line-height: 1.8;
+	color: #b4bdd3;
+}
+.fallback button {
+	background-color: #29334e;
+	border: 1px solid #444e6c;
+	padding: 10px 20px;
+	border-radius: 6px;
+}
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+@keyframes cycle {
+	from {
+		--worklet-time: 0;
+	}
+	to {
+		--worklet-time: 1;
+	}
+}
+@media (width >= 1600px) {
+	.stage {
+		min-height: 700px;
+	}
+}
+@media (width < 1100px) {
+	.header,
+	.main,
+	.footer {
+		width: calc(100% - 48px);
+	}
+	.intro {
+		align-items: start;
+		flex-direction: column;
+		gap: 18px;
+	}
+	.studio {
+		grid-template-columns: minmax(0, 1fr) 260px;
+		gap: 20px;
+	}
+	.stage-bottom span {
+		display: none;
+	}
+}
+@media (width < 760px) {
+	.header,
+	.main,
+	.footer {
+		width: calc(100% - 32px);
+	}
+	.header {
+		min-height: 80px;
+	}
+	.about-link {
+		font-size: 11px;
+	}
+	.intro {
+		padding-block: 25px 30px;
+	}
+	.intro h1 {
+		font-size: 37px;
+		letter-spacing: -1.8px;
+		max-width: 340px;
+	}
+	.intro p {
+		font-size: 12px;
+	}
+	.experiments {
+		margin-right: -16px;
+		padding-right: 16px;
+		gap: 2px;
+	}
+	.experiments button {
+		padding: 10px 12px;
+	}
+	.studio {
+		grid-template-columns: 1fr;
+	}
+	.stage {
+		min-height: 440px;
+	}
+	.stage-top {
+		left: 18px;
+		right: 18px;
+		font-size: 10px;
+	}
+	.stage-title {
+		left: 20px;
+		bottom: 82px;
+	}
+	.stage-bottom {
+		left: 18px;
+		right: 18px;
+	}
+	.inspector {
+		padding: 5px 3px 12px;
+	}
+	.description {
+		min-height: auto;
+		max-width: 440px;
+	}
+	.controls {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 25px;
+	}
+	.recipe-intro {
+		padding: 20px 16px;
+		gap: 12px;
+	}
+	.code-symbol {
+		display: none;
+	}
+	.recipe-intro h2 {
+		font-size: 13px;
+	}
+	.recipe-intro p {
+		font-size: 10px;
+	}
+	.recipe-intro button {
+		padding: 9px 11px;
+		font-size: 11px;
+	}
+	.recipe-code {
+		grid-template-columns: 1fr;
+	}
+	.recipe pre + pre {
+		border-left: 0;
+		border-top: 1px solid #2b3140;
+	}
+	.about {
+		grid-template-columns: 1fr;
+		gap: 20px;
+		padding: 45px 4px;
+	}
+	.about h2 {
+		max-width: none;
+	}
+	.footer {
+		gap: 25px;
+		font-size: 10px;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	:global(html) {
+		scroll-behavior: auto;
+	}
+	.surface {
+		animation: none;
+	}
+}
+
+.header svg,
+.experiments svg,
+.studio button svg,
+.recipe svg {
+	display: block;
+	width: 17px;
+	height: 17px;
+	flex-shrink: 0;
+}
+.brand-mark svg {
+	width: 30px;
+	height: 30px;
+}
+.experiments svg {
+	width: 19px;
+	height: 19px;
+	color: #aeb9eb;
+}
+.studio button,
+.recipe-intro button {
+	display: inline-flex;
+	justify-content: center;
+	align-items: center;
+	gap: 7px;
+}
+.stage-bottom button:last-child {
+	padding: 8px 9px;
+}
+.stage-bottom button span {
+	display: inline;
+	opacity: 1;
+}
+.stage-bottom button svg,
+.inspector button svg,
+.recipe-intro button svg {
+	width: 13px;
+	height: 13px;
+}
+.code-symbol svg {
+	width: 23px;
+	height: 23px;
+}
+.about-link {
+	align-items: center;
+}

@@ -1,0 +1,9 @@
+{
+  "name": "particles-worklet",
+  "version": "1.0.0",
+  "description": "A CSS Houdini worklet to draw colorful particles",
+  "main": "worklet.js",
+  "keywords": ["CSS", "Houdini", "Javascript", "Worklet"],
+  "author": "Emilio Domínguez",
+  "license": "MIT"
+}

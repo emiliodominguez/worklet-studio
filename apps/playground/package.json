@@ -1,0 +1,19 @@
+{
+	"name": "@worklet-studio/playground",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "vite --host 127.0.0.1 --port 4173",
+		"build": "vite build",
+		"preview": "vite preview --host 127.0.0.1 --port 4173"
+	},
+	"dependencies": {
+		"particles-worklet": "*",
+		"cursor-worklet": "*",
+		"aurora-worklet": "*",
+		"flow-field-worklet": "*",
+		"ripple-worklet": "*",
+		"iridescence-worklet": "*"
+	}
+}
