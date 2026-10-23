@@ -1,4 +1,5 @@
 import { color, commonProperties, controls, drawable, glow, number, TAU, token } from "../../core/src/index.ts";
+import { material, spectrum, surface } from "../../core/src/surface.ts";
 import type { PaintContext, PaintSize, PaintProperties } from "../../core/src/types.ts";
 import { parseTrail, smoothTrail } from "./trails.ts";
 import type { TrailPoint } from "./trails.ts";
@@ -30,6 +31,49 @@ function segment(ctx: PaintContext, a: TrailPoint, b: TrailPoint, hue: number, a
 	ctx.moveTo(a.x, a.y);
 	ctx.lineTo(b.x, b.y);
 	ctx.stroke();
+}
+
+/** Shade a glass or plasma sphere with a moving reflected environment. @param ctx Paint context. @param x Center x. @param y Center y. @param radius Sphere radius. @param hue Base color. @param phase Loop phase. @param exposure Light intensity. @param plasma Add flowing emission filaments. */
+function orb(ctx: PaintContext, x: number, y: number, radius: number, hue: number, phase: number, exposure: number, plasma = false): void {
+	if (radius <= 0) return;
+	ctx.save();
+	ctx.translate(x - radius * 1.1, y - radius * 1.1);
+	ctx.globalCompositeOperation = "source-over";
+	ctx.beginPath();
+	for (let step = 0; step <= 180; step++) {
+		const angle = (step / 180) * TAU,
+			r = radius * (plasma ? 1 + Math.sin(angle * 3 + phase) * 0.045 : 1);
+		const px = radius * 1.1 + Math.cos(angle) * r,
+			py = radius * 1.1 + Math.sin(angle) * r;
+		if (step) ctx.lineTo(px, py);
+		else ctx.moveTo(px, py);
+	}
+	ctx.closePath();
+	ctx.clip();
+	surface(
+		ctx,
+		{ width: radius * 2.2, height: radius * 2.2 },
+		function shade(u, v) {
+			const px = (u - 0.5) * 2.2,
+				py = (v - 0.5) * 2.2,
+				angle = Math.atan2(py, px);
+			const outline = plasma ? 1 + Math.sin(angle * 3 + phase) * 0.045 : 1;
+			const nx = px / outline,
+				ny = py / outline,
+				distance = nx * nx + ny * ny;
+			if (distance >= 1.12) return "transparent";
+			const nz = Math.sqrt(Math.max(0, 1 - distance));
+			if (plasma) {
+				const flow = Math.sin(angle * 4 + nz * 12 - phase * 2) + Math.cos(ny * 9 + phase);
+				const filament = Math.exp(-Math.abs(flow) * 12);
+				const rim = Math.pow(1 - nz, 4);
+				return spectrum(hue + nz * 65 + filament * 25, (0.05 + filament * 1.4 + rim * 1.8) * exposure, 0.8 - filament * 0.5);
+			}
+			return material(nx, ny, nz, hue + nz * 20, exposure, 1, -0.6 + Math.sin(phase) * 0.35, -0.8);
+		},
+		128,
+	);
+	ctx.restore();
 }
 
 /** Paint six cursor materials, retaining the original ripple controls. @param ctx Paint context. @param size CSS dimensions. @param properties CSS inputs. */
@@ -80,6 +124,22 @@ export function paint(ctx: PaintContext, size: PaintSize, properties: PaintPrope
 		}
 		points = smoothTrail(points);
 		if (mode === "ribbon") {
+			ctx.globalCompositeOperation = "source-over";
+			for (let i = points.length - 1; i > 0; i--) {
+				const u = i / points.length,
+					point = points[i],
+					previous = points[i - 1];
+				const roll = u * TAU * twist + phase;
+				ctx.strokeStyle = material(Math.sin(roll) * 0.8, -0.4, Math.sqrt(0.84 - Math.sin(roll) ** 2 * 0.64), hue + u * 50, opacity, 1);
+				ctx.lineWidth = Math.max(0.3, Math.sin(u * Math.PI) * radius * (0.3 + Math.abs(Math.cos(roll)) * 0.65));
+				ctx.globalAlpha = Math.pow(1 - u, 0.6);
+				ctx.beginPath();
+				ctx.moveTo(previous.x, previous.y);
+				ctx.lineTo(point.x, point.y);
+				ctx.stroke();
+			}
+			ctx.globalAlpha = 1;
+			ctx.globalCompositeOperation = "lighter";
 			const strands = Math.max(4, Math.min(18, rings * 2));
 			for (let strand = 0; strand < strands; strand++) {
 				let previous: TrailPoint | undefined;
@@ -131,10 +191,11 @@ export function paint(ctx: PaintContext, size: PaintSize, properties: PaintPrope
 		ctx.arc(x, y, Math.max(0.5, radius * 0.08), 0, TAU);
 		ctx.fill();
 	} else if (mode === "plasma") {
+		orb(ctx, x, y, radius * 1.85, hue, phase, opacity, true);
 		for (let line = 0; line < 42; line++) {
 			const f = line / 41,
 				r = radius * (0.5 + f * 1.5);
-			ctx.strokeStyle = `hsla(${hue + f * 100}, 95%, ${65 + Math.sin(f * Math.PI) * 20}%, ${opacity * (0.25 + f * 0.55)})`;
+			ctx.strokeStyle = `hsla(${hue + f * 100}, 95%, ${65 + Math.sin(f * Math.PI) * 20}%, ${opacity * (0.08 + f * 0.18)})`;
 			ctx.lineWidth = line % 7 === 0 ? 1.4 : 0.65;
 			ctx.beginPath();
 			for (let step = 0; step <= 120; step++) {
@@ -150,6 +211,7 @@ export function paint(ctx: PaintContext, size: PaintSize, properties: PaintPrope
 		}
 		glow(ctx, x - radius * 0.4, y - radius * 0.4, radius * 1.2 * bloom, `hsla(${hue + 35}, 95%, 80%, ${opacity * 0.25})`);
 	} else if (mode === "lens") {
+		orb(ctx, x, y, radius * 1.8, hue, phase, opacity);
 		for (let channel = 0; channel < 3; channel++) {
 			const r = radius * (1.8 + channel * 0.055);
 			const gradient = ctx.createLinearGradient(x - r, y - r, x + r, y + r);
@@ -170,6 +232,7 @@ export function paint(ctx: PaintContext, size: PaintSize, properties: PaintPrope
 		ctx.fill();
 	} else {
 		const orbit = number(properties, "--cursor-orbit", 1, 0.1, 3);
+		orb(ctx, x, y, radius * 0.7, hue + 20, phase, opacity);
 		for (let ring = 0; ring < rings; ring++) {
 			const r = radius * (1.3 + ring * 0.5) * orbit,
 				squash = 0.25 + 0.15 * Math.sin(phase + ring);

@@ -13,7 +13,10 @@ import type { PaintContext, Painter } from "../packages/core/src/types.ts";
 import { paint as caustics } from "../packages/caustics-worklet/src/renderer.ts";
 import { paint as vortex } from "../packages/vortex-worklet/src/renderer.ts";
 import { paint as terrain } from "../packages/terrain-worklet/src/renderer.ts";
-const painters = { aurora, particles, cursor, flow, ripple, iridescence, caustics, vortex, terrain };
+import { paint as nebula } from "../packages/nebula-worklet/src/renderer.ts";
+import { paint as metaballs } from "../packages/metaballs-worklet/src/renderer.ts";
+import { paint as kaleidoscope } from "../packages/kaleidoscope-worklet/src/renderer.ts";
+const painters = { nebula, metaballs, kaleidoscope, aurora, particles, cursor, flow, ripple, iridescence, caustics, vortex, terrain };
 
 /** Record the supported paint operations and reject invalid geometry. @param painter Painter to invoke. @param values CSS inputs. @param width Surface width. @param height Surface height. @returns Recorded operations. */
 function render(painter: Painter, values: Record<string, string | number> = {}, width = 800, height = 500): unknown[][] {
@@ -26,6 +29,7 @@ function render(painter: Painter, values: Record<string, string | number> = {}, 
 		"closePath",
 		"arc",
 		"ellipse",
+		"clip",
 		"fill",
 		"stroke",
 		"fillRect",
@@ -91,6 +95,18 @@ for (const [name, painter] of Object.entries(painters)) {
 		assert.deepEqual(render(painter, { "--worklet-time": "invalid", "--worklet-seed": "NaN", "--worklet-hue": "Infinity" }), render(painter));
 	});
 }
+
+test("every non-cursor material responds to bounded view inputs", function viewInputs() {
+	for (const [name, painter] of Object.entries(painters)) {
+		if (name === "cursor") continue;
+		assert.notDeepEqual(render(painter, { "--worklet-pointer-x": 0.9, "--worklet-pointer-y": 0.1 }), render(painter), name);
+		assert.deepEqual(
+			render(painter, { "--worklet-pointer-x": -100, "--worklet-pointer-y": 100 }),
+			render(painter, { "--worklet-pointer-x": 0, "--worklet-pointer-y": 1 }),
+			name,
+		);
+	}
+});
 
 test("random seeds are repeatable and stay in range", function seeded() {
 	const a = random(12),

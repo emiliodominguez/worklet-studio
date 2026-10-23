@@ -27,3 +27,9 @@ New surfaces: animated water caustics, a tilted gravitational vortex, and lumino
 ## Vortex realism pass
 
 The first vortex read as a folded sheet because a Gaussian deformation pulled the orbital lines into an elevated peak. Replace that construction with a thin foreground disk, a larger circular shadow, an upper lensed image and a compressed lower image. Use warm radial cooling, unequal brightness across the disk, and moving gas lanes. Keep the surrounding studio unchanged. The new disk-opening control separates foreshortening from screen rotation. [NASA's visualization](https://svs.gsfc.nasa.gov/13326/) provides the visual reference; the worklet remains a vector illustration rather than a physical simulation.
+
+## Immersive material pass
+
+Keep the quiet ink/slate framing, frost typography, and SVG controls. The paintings carry the visual change. Make the surfaces feel illuminated and spatial: normal-based studio reflections on liquid and foil, depth-sorted ribbon faces, occluding terrain layers, volumetric-looking cloud emission and absorption, parallax stars, and reflective cursor materials. Add nebula, metaballs, and kaleidoscope for twelve effects and forty-two presets.
+
+Review against the brief: avoid giving every effect the same rainbow bloom. Keep deep blue water, coherent sapphire crystals, colored gas against black dust, and material-specific cursor silhouettes. The first sampled surface pass showed horizontal seams and jagged droplet edges; replace flat bands with interpolated scanlines and continuous silhouette clipping. Keep the original cursor rings animated and API-compatible. Pointer lighting and parallax should settle and stop, respect reduced motion, and be available in copied recipes.

@@ -1,4 +1,7 @@
 const paths: Record<string, string> = {
+	nebula: '<path d="M4 15C-1 5 10 1 17 6s6 14-3 15S2 12 10 9s10 6 3 8"/><path d="M18 1v5m-2.5-2.5h5M3 19v3m-1.5-1.5h3"/>',
+	metaballs: '<path d="M11 5c5-6 13 1 9 6-2 2-1 4-2 7-2 5-10 3-9-2 0-3-1-3-4-3C0 13 1 5 6 6c2 1 3 1 5-1Z"/>',
+	kaleidoscope: '<path d="m12 2 4 6 6 4-6 4-4 6-4-6-6-4 6-4 4-6Zm0 0v20M2 12h20M8 8l8 8m0-8-8 8"/>',
 	caustics: '<path d="M2 8c3-5 5 5 8 0s5 5 8 0 4 0 4 0M2 16c3-5 5 5 8 0s5 5 8 0 4 0 4 0M8 2c-5 3 5 5 0 8s5 5 0 8m8-16c-5 3 5 5 0 8s5 5 0 8"/>',
 	vortex: '<ellipse cx="12" cy="13" rx="10" ry="3" transform="rotate(-15 12 13)"/><path d="M7 12a5 7 0 1 1 10 0"/><circle cx="12" cy="12" r="2.5"/>',
 	terrain: '<path d="M2 18c5 0 4-10 10-10s4 7 10 7M2 13c5 0 4-10 10-10s4 7 10 7M2 23c5 0 4-10 10-10s4 7 10 7"/>',

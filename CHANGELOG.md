@@ -16,4 +16,12 @@ Vortex realism pass: replace the folded orbital sheet with a thin accretion disk
 
 ## Studio
 
-Turborepo, nine independently packable packages, 33 interactive presets, a dedicated eight-preset cursor picker, SVG icons, mobile layout, reduced-motion behavior, visibility pausing, code recipes, full screen, and share links. Original npm source retained for provenance. Unit, browser, and isolated-package checks plus CI configuration.
+Turborepo, twelve independently packable packages, 42 interactive presets, a dedicated eight-preset cursor picker, SVG icons, mobile layout, reduced-motion behavior, visibility pausing, code recipes, full screen, and share links. Original npm source retained for provenance. Unit, browser, and isolated-package checks plus CI configuration.
+
+## Immersive material pass
+
+All twelve effects gain material or depth work: shaded three-dimensional aurora ribbons; depth-weighted particles and flow trails; reflected liquid wave normals; thin-film foil; focused underwater light; accretion bloom and background stars; occluding, shaded mountain ridges; fractal nebula emission and absorption; merging three-dimensional metaballs; crystal highlights. Glass, plasma, orbit, and silk cursors gain shaded surfaces while the original animated ripple contract remains intact.
+
+Eleven non-cursor loaders export `attachView` for eased pointer lighting and parallax with reduced-motion handling and cleanup. Recipes include the appropriate helper. No Three.js, WebGL, canvas element, or image assets are added to the showcase.
+
+New packages: nebula-worklet, metaballs-worklet, and kaleidoscope-worklet. Batch npm release scripts include full validation, exact tarball rehearsal, registry/version/ownership preflight, resumability, and a persistent progress report.

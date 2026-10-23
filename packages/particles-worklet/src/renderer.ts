@@ -16,7 +16,7 @@ export const inputProperties = [
 /** Render a deterministic constellation, with bounded spatial-neighbor searches. @param ctx Paint context. @param size CSS-pixel dimensions. @param properties CSS inputs. */
 export function paint(ctx: PaintContext, size: PaintSize, properties: PaintProperties): void {
 	if (!drawable(size)) return;
-	const { phase, seed, hue, intensity } = controls(properties);
+	const { phase, seed, hue, intensity, viewX, viewY } = controls(properties);
 	const next = random(seed);
 	const count = Math.floor(number(properties, "--particles-count", 130, 0, 800));
 	const min = number(properties, "--particles-size-min", 0.6, 0, 30);
@@ -27,7 +27,7 @@ export function paint(ctx: PaintContext, size: PaintSize, properties: PaintPrope
 	const bloom = number(properties, "--particles-glow", 1, 0, 2);
 	ctx.fillStyle = token(properties, "--particles-background", "#111");
 	ctx.fillRect(0, 0, size.width, size.height);
-	const particles: { x: number; y: number; radius: number; hue: number }[] = [];
+	const particles: { x: number; y: number; radius: number; hue: number; depth: number }[] = [];
 	const cells = new Map<string, number[]>();
 	const cellSize = Math.max(1, threshold);
 	for (let i = 0; i < count; i++) {
@@ -40,7 +40,10 @@ export function paint(ctx: PaintContext, size: PaintSize, properties: PaintPrope
 			x = size.width / 2 + Math.cos(angle) * radial * extent;
 			y = size.height / 2 + Math.sin(angle) * radial * extent * 0.55 + Math.sin(i * 8.3) * drift * 0.2;
 		}
-		particles.push({ x, y, radius: min + next() * (max - min), hue: hue + next() * 85 });
+		const depth = 0.15 + next() * 0.85;
+		x += viewX * depth * 70;
+		y += viewY * depth * 70;
+		particles.push({ x, y, radius: min + next() * (max - min), hue: hue + next() * 65, depth });
 		const key = `${Math.floor(x / cellSize)},${Math.floor(y / cellSize)}`;
 		const bucket = cells.get(key) || [];
 		bucket.push(i);
@@ -48,8 +51,30 @@ export function paint(ctx: PaintContext, size: PaintSize, properties: PaintPrope
 	}
 	ctx.save();
 	ctx.globalCompositeOperation = "lighter";
-	if (galaxy && count > 0)
-		glow(ctx, size.width / 2, size.height / 2, Math.min(size.width, size.height) * 0.35, `hsla(${hue + 40}, 85%, 65%, ${0.15 * intensity})`);
+	if (count > 0) {
+		glow(
+			ctx,
+			size.width * 0.3 + viewX * 30,
+			size.height * 0.4,
+			Math.min(size.width, size.height) * 0.9,
+			`hsla(${hue}, 85%, 50%, ${0.12 * intensity})`,
+		);
+		glow(ctx, size.width * 0.75, size.height * 0.7, Math.min(size.width, size.height) * 0.65, `hsla(${hue + 65}, 85%, 50%, ${0.07 * intensity})`);
+	}
+	if (galaxy && count > 0) {
+		const extent = Math.min(size.width * 0.43, size.height * 0.65);
+		for (let arm = 0; arm < 3; arm++) {
+			for (let step = 0; step < 80; step++) {
+				const radial = step / 80,
+					angle = (arm * TAU) / 3 + radial * 4.5 + phase + 0.25;
+				const x = size.width / 2 + Math.cos(angle) * radial * extent + viewX * 22;
+				const y = size.height / 2 + Math.sin(angle) * radial * extent * 0.55 + viewY * 22;
+				glow(ctx, x, y, extent * (0.03 + radial * 0.035), `hsla(${hue + 20 + radial * 45}, 80%, 65%, ${(1 - radial) * 0.055 * intensity})`);
+			}
+		}
+		glow(ctx, size.width / 2 + viewX * 22, size.height / 2 + viewY * 22, extent * 0.25, `hsla(${hue + 40}, 65%, 75%, ${0.3 * intensity})`);
+		glow(ctx, size.width / 2 + viewX * 22, size.height / 2 + viewY * 22, extent * 0.09, `rgba(240, 225, 255, ${0.65 * intensity})`);
+	}
 	if (threshold > 0) {
 		for (let i = 0; i < count; i++) {
 			const a = particles[i];
@@ -64,7 +89,7 @@ export function paint(ctx: PaintContext, size: PaintSize, properties: PaintPrope
 						const b = particles[j];
 						const distance = Math.hypot(a.x - b.x, a.y - b.y);
 						if (distance >= threshold) continue;
-						ctx.strokeStyle = `hsla(${(a.hue + b.hue) / 2}, 85%, 72%, ${(1 - distance / threshold) * 0.32 * intensity})`;
+						ctx.strokeStyle = `hsla(${(a.hue + b.hue) / 2}, 85%, 72%, ${(1 - distance / threshold) * 0.4 * Math.min(a.depth, b.depth) * intensity})`;
 						ctx.lineWidth = 0.65;
 						ctx.beginPath();
 						ctx.moveTo(a.x, a.y);
@@ -76,9 +101,9 @@ export function paint(ctx: PaintContext, size: PaintSize, properties: PaintPrope
 		}
 	}
 	for (const particle of particles) {
-		const { x, y, radius, hue: tint } = particle;
-		if (bloom && radius) glow(ctx, x, y, radius * 7 * bloom, `hsla(${tint}, 95%, 65%, ${0.25 * intensity})`);
-		ctx.fillStyle = `hsla(${tint}, 90%, 85%, ${Math.min(1, intensity)})`;
+		const { x, y, radius, hue: tint, depth } = particle;
+		if (bloom && radius) glow(ctx, x, y, radius * (5 + depth * 12) * bloom, `hsla(${tint}, 95%, 65%, ${(0.12 + depth * 0.25) * intensity})`);
+		ctx.fillStyle = `hsla(${tint}, 90%, 85%, ${Math.min(1, intensity * (0.35 + depth * 0.65) * (0.8 + Math.sin(phase * 2 + x) * 0.2))})`;
 		ctx.beginPath();
 		ctx.arc(x, y, radius, 0, TAU);
 		ctx.fill();

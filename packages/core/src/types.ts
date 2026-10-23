@@ -19,6 +19,7 @@ export type PaintContext = Pick<
 	| "closePath"
 	| "arc"
 	| "ellipse"
+	| "clip"
 	| "fill"
 	| "stroke"
 	| "fillRect"

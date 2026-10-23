@@ -9,10 +9,12 @@ Zero runtime dependencies. One self-contained paint module, a minified alternati
 For Vite:
 
 ```js
-import { register } from "iridescence-worklet/register";
+import { register, attachView } from "iridescence-worklet/register";
 import workletUrl from "iridescence-worklet/worklet.js?url";
 
 await register(workletUrl);
+const cleanup = attachView(document.querySelector(".art"));
+// Call cleanup() when removing the element.
 ```
 
 For other build systems, copy `worklet.js` to a public asset and call `CSS.paintWorklet.addModule('/worklets/iridescence.js')` after checking `globalThis.CSS?.paintWorklet`. Keep the native cursor and a static background fallback. `register(url?)` returns `Promise<boolean>`: false when unsupported or during SSR, true after loading, and a rejection for load failures. Repeated calls with the same URL are deduplicated; failures can be retried. A default URL works when the package directory structure is served intact; bundled apps should pass their asset URL explicitly.
@@ -57,6 +59,8 @@ For other build systems, copy `worklet.js` to a public asset and call `CSS.paint
 ```
 
 Register `--worklet-time` once in your document. Without an animation, the effect is a stable still image. The worklet does not own a timer or access the DOM. Pause animations when the surface is hidden.
+
+Optional `attachView(element)` eases pointer lighting or parallax through `--worklet-pointer-x` and `--worklet-pointer-y` (0–1, centered at 0.5). It stops when settled, honors reduced motion, leaves touch scrolling intact, and returns cleanup that restores previous inline values. These properties can also be driven directly by your application.
 
 ## CSS inputs
 

@@ -49,7 +49,7 @@ try {
 	execFileSync("npm", ["install", "--ignore-scripts", "--no-audit", "--no-fund", ...archives], { cwd: temporary, stdio: "pipe" });
 	const imports = directories
 		.map(function script(name) {
-			return `await import(${JSON.stringify(name)}); if (await (await import(${JSON.stringify(`${name}/register`)})).register() !== false) throw new Error("SSR registration must return false");`;
+			return `await import(${JSON.stringify(name)}); { const loader = await import(${JSON.stringify(`${name}/register`)}); if (await loader.register() !== false) throw new Error("SSR registration must return false"); if (typeof loader.${name === "cursor-worklet" ? "attachPointer" : "attachView"} !== "function") throw new Error("Missing pointer helper"); }`;
 		})
 		.join("\n");
 	execFileSync(process.execPath, ["--input-type=module", "-e", imports], { cwd: temporary, stdio: "pipe" });

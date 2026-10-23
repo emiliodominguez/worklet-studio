@@ -30,8 +30,8 @@ export const experiments: Experiment[] = [
 		id: "aurora",
 		name: "Aurora",
 		subtitle: "Light, folded.",
-		description: "A sculpture made of a hundred luminous threads. Every strand follows the same invisible current.",
-		hint: "Try a different fold count",
+		description: "Folded silk catches a moving light. A luminous skin, fine threads, and overlapping folds give the ribbon its depth.",
+		hint: "Move to turn the light · try a different fold count",
 		controls: [
 			control("--aurora-ribbons", "Threads", 20, 180, 1, 110),
 			control("--aurora-spread", "Spread", 0.05, 1.2, 0.01, 0.55),
@@ -314,6 +314,65 @@ export const experiments: Experiment[] = [
 			{ name: "Contour", values: { "--worklet-hue": 170, "--terrain-height": 0.85 } },
 			{ name: "Dunes", values: { "--worklet-hue": 10, "--terrain-height": 1.1, "--terrain-complexity": 1.1 } },
 			{ name: "Digital alps", values: { "--worklet-hue": 245, "--terrain-height": 1.5, "--terrain-complexity": 3.5, "--terrain-lines": 120 } },
+		],
+	},
+	{
+		id: "nebula",
+		name: "Nebula",
+		subtitle: "Somewhere, stars are forming.",
+		description: "Clouds of colored light drift around dark dust lanes. A seeded star field brings a little depth to the night.",
+		hint: "Dust carves shadows through the clouds",
+		controls: [
+			control("--nebula-clouds", "Density", 40, 240, 1, 160),
+			control("--nebula-spread", "Spread", 0.3, 1.5, 0.05, 1),
+			control("--nebula-stars", "Stars", 0, 260, 1, 140),
+			control("--nebula-dust", "Dust", 0, 1, 0.05, 0.6),
+		],
+		presets: [
+			{ name: "Orion", values: { "--worklet-hue": 220, "--nebula-clouds": 200 } },
+			{ name: "Carina", values: { "--worklet-hue": 5, "--nebula-spread": 1.2, "--nebula-dust": 0.85 } },
+			{ name: "Deep space", values: { "--worklet-hue": 170, "--nebula-spread": 0.65, "--nebula-stars": 230, "--nebula-dust": 0.8 } },
+		],
+	},
+	{
+		id: "metaballs",
+		name: "Metaballs",
+		subtitle: "A softer state of matter.",
+		description: "Liquid forms drift together, merge, and pull apart. Reflected light follows every curve of their glassy surfaces.",
+		hint: "Increase merging to join the droplets",
+		controls: [
+			control("--metaballs-count", "Droplets", 2, 9, 1, 5),
+			control("--metaballs-size", "Size", 0.5, 1.5, 0.05, 1),
+			control("--metaballs-merging", "Merging", 0.6, 1.6, 0.05, 1),
+		],
+		presets: [
+			{ name: "Liquid glass", values: { "--worklet-hue": 185, "--metaballs-count": 5 } },
+			{ name: "Lava lamp", values: { "--worklet-hue": 330, "--metaballs-count": 4, "--metaballs-size": 1.25, "--metaballs-merging": 1.2 } },
+			{ name: "Quicksilver", values: { "--worklet-hue": 220, "--metaballs-count": 8, "--metaballs-size": 0.75, "--metaballs-merging": 0.7 } },
+		],
+	},
+	{
+		id: "kaleidoscope",
+		name: "Kaleidoscope",
+		subtitle: "Every turn, another world.",
+		description: "Mirrored crystal facets rotate through each other. A shifting aperture of jewel tones and delicate spectral seams.",
+		hint: "Change the symmetry to recut the crystal",
+		controls: [
+			control("--kaleidoscope-segments", "Symmetry", 4, 24, 1, 12),
+			control("--kaleidoscope-layers", "Facets", 3, 18, 1, 10),
+			control("--kaleidoscope-twist", "Twist", 0, 3, 0.05, 1.2),
+			control("--kaleidoscope-radius", "Scale", 0.4, 1.4, 0.05, 1),
+		],
+		presets: [
+			{ name: "Sapphire", values: { "--worklet-hue": 180, "--kaleidoscope-segments": 12 } },
+			{
+				name: "Cathedral",
+				values: { "--worklet-hue": 15, "--kaleidoscope-segments": 8, "--kaleidoscope-layers": 14, "--kaleidoscope-twist": 2 },
+			},
+			{
+				name: "Aperture",
+				values: { "--worklet-hue": 260, "--kaleidoscope-segments": 6, "--kaleidoscope-layers": 6, "--kaleidoscope-twist": 2.7 },
+			},
 		],
 	},
 ];

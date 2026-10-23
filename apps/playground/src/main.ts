@@ -3,6 +3,7 @@ import { icon, brandMark } from "./icons.ts";
 import { experiments } from "./catalog.ts";
 import type { Control } from "./catalog.ts";
 import { attachPointer } from "cursor-worklet/register";
+import { attachView } from "aurora-worklet/register";
 import auroraUrl from "aurora-worklet/worklet.js?url";
 import particlesUrl from "particles-worklet/worklet.js?url";
 import cursorUrl from "cursor-worklet/worklet.js?url";
@@ -13,8 +14,24 @@ import iridescenceUrl from "iridescence-worklet/worklet.js?url";
 import causticsUrl from "caustics-worklet/worklet.js?url";
 import vortexUrl from "vortex-worklet/worklet.js?url";
 import terrainUrl from "terrain-worklet/worklet.js?url";
+import nebulaUrl from "nebula-worklet/worklet.js?url";
+import metaballsUrl from "metaballs-worklet/worklet.js?url";
+import kaleidoscopeUrl from "kaleidoscope-worklet/worklet.js?url";
 
-const urls = [auroraUrl, particlesUrl, cursorUrl, flowUrl, rippleUrl, iridescenceUrl, causticsUrl, vortexUrl, terrainUrl];
+const urls = [
+	auroraUrl,
+	particlesUrl,
+	cursorUrl,
+	flowUrl,
+	rippleUrl,
+	iridescenceUrl,
+	causticsUrl,
+	vortexUrl,
+	terrainUrl,
+	nebulaUrl,
+	metaballsUrl,
+	kaleidoscopeUrl,
+];
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
 let selected = 0,
 	preset = 0,
@@ -41,7 +58,7 @@ element("#app").innerHTML = `
 	<main class="${styles["main"]}">
 		<section class="${styles["intro"]}" aria-labelledby="headline">
 			<h1 id="headline">Make CSS a little unreal.</h1>
-			<p>Light. Motion. A few custom properties.<br>Nine experiments at the edge of what a background can be.</p>
+			<p>Light. Motion. A few custom properties.<br>Twelve experiments at the edge of what a background can be.</p>
 		</section>
 		<nav class="${styles["experiments"]}" aria-label="Choose an experiment">${experiments
 			.map(function tab(item, index) {
@@ -69,7 +86,7 @@ element("#app").innerHTML = `
 			<div class="${styles["recipe-intro"]}"><span class="${styles["code-symbol"]}" aria-hidden="true">${icon("code")}</span><div><h2 id="recipe-heading">Take the effect with you.</h2><p>One element. Your colors. Your motion.</p></div><button type="button" id="copy">${icon("copy")}Copy recipe</button></div>
 			<details><summary>${icon("chevron")}See the CSS and setup</summary><div class="${styles["recipe-code"]}"><pre><code id="css-code"></code></pre><pre><code id="js-code"></code></pre></div></details>
 		</section>
-		<section id="about" class="${styles["about"]}"><h2>Yes, this is a CSS background.</h2><p>Each experiment is a Houdini paint worklet: a small JavaScript painter that gives CSS a new kind of image. The animation is driven by a CSS custom property. No canvas elements, videos, or image sequences.</p><p>Made by Emilio Domínguez. Nine independent packages, one shared studio. Chrome and Edge support CSS Paint; other browsers keep a static fallback. Motion pauses when the preview is out of view and respects your reduced-motion preference.</p></section>
+		<section id="about" class="${styles["about"]}"><h2>Yes, this is a CSS background.</h2><p>Each experiment is a Houdini paint worklet: a small JavaScript painter that gives CSS a new kind of image. The animation is driven by a CSS custom property. No canvas elements, videos, or image sequences.</p><p>Made by Emilio Domínguez. Twelve independent packages, one shared studio. Chrome and Edge support CSS Paint; other browsers keep a static fallback. Motion pauses when the preview is out of view and respects your reduced-motion preference.</p></section>
 	</main>
 	<footer class="${styles["footer"]}"><span>Worklet Studio</span><span>Small packages. Unreasonable possibilities.</span></footer>
 	<p id="announcement" class="${styles["sr-only"]}" role="status" aria-live="polite"></p>
@@ -108,7 +125,7 @@ function cssRecipe(): string {
 function jsRecipe(): string {
 	const effect = experiments[selected];
 	const pointer = effect.id === "cursor";
-	return `// Vite: import the worklet as a hosted asset.\nimport { register${pointer ? ", attachPointer" : ""} } from "${effect.id}-worklet/register";\nimport workletUrl from "${effect.id}-worklet/worklet.js?url";\n\nawait register(workletUrl);${pointer ? '\nconst cleanup = attachPointer(document.querySelector(".art"), { smoothing: 0.24, trail: 32 });\n// Call cleanup() when the element is removed.' : ""}\n\n// HTML: <div class="art"></div>`;
+	return `// Vite: import the worklet as a hosted asset.\nimport { register, ${pointer ? "attachPointer" : "attachView"} } from "${effect.id}-worklet/register";\nimport workletUrl from "${effect.id}-worklet/worklet.js?url";\n\nawait register(workletUrl);\nconst cleanup = ${pointer ? 'attachPointer(document.querySelector(".art"), { smoothing: 0.24, trail: 32 })' : 'attachView(document.querySelector(".art"))'};\n// Call cleanup() when the element is removed.\n\n// HTML: <div class="art"></div>`;
 }
 
 /** Update recipe text without recreating focused controls. */
@@ -180,7 +197,7 @@ function renderEffect(): void {
 	renderControls();
 	applyValues();
 	updateMotion();
-	if (effect.id === "cursor" && ready) detachPointer = attachPointer(surface, { touch: true, smoothing: 0.24, trail: 32 });
+	if (ready) detachPointer = effect.id === "cursor" ? attachPointer(surface, { touch: true, smoothing: 0.24, trail: 32 }) : attachView(surface);
 }
 
 /** Copy text and announce success or a useful failure. @param text Text to copy. @param message Success message. */

@@ -4,3 +4,5 @@ import { loadWorklet } from "../../core/src/register.ts";
 export function register(url: string | URL = new URL("../worklet.js", import.meta.url)): Promise<boolean> {
 	return loadWorklet(url);
 }
+
+export { attachView } from "../../core/src/interaction.ts";

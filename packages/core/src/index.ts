@@ -1,7 +1,14 @@
 import type { PaintContext, PaintProperties, PaintSize } from "./types.ts";
 export type { PaintContext, PaintProperties, PaintSize, Painter } from "./types.ts";
 export const TAU = Math.PI * 2;
-export const commonProperties = ["--worklet-time", "--worklet-seed", "--worklet-hue", "--worklet-intensity"];
+export const commonProperties = [
+	"--worklet-time",
+	"--worklet-seed",
+	"--worklet-hue",
+	"--worklet-intensity",
+	"--worklet-pointer-x",
+	"--worklet-pointer-y",
+];
 
 /** Read a CSS token with a default. @param properties Input properties. @param name CSS variable. @param fallback Default value. @returns A trimmed token. */
 export function token(properties: PaintProperties, name: string, fallback: string): string {
@@ -33,6 +40,8 @@ export function controls(properties: PaintProperties) {
 		seed: number(properties, "--worklet-seed", 42),
 		hue: number(properties, "--worklet-hue", 225, -3600, 3600),
 		intensity: number(properties, "--worklet-intensity", 1, 0, 2),
+		viewX: number(properties, "--worklet-pointer-x", 0.5, 0, 1) - 0.5,
+		viewY: number(properties, "--worklet-pointer-y", 0.5, 0, 1) - 0.5,
 	};
 }
 

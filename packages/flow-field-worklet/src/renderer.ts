@@ -5,7 +5,7 @@ export const inputProperties = [...commonProperties, "--flow-density", "--flow-t
 /** Trace bounded, seeded streamlines through an animated vector field. @param ctx Paint context. @param size CSS-pixel dimensions. @param properties CSS inputs. */
 export function paint(ctx: PaintContext, size: PaintSize, properties: PaintProperties): void {
 	if (!drawable(size)) return;
-	const { phase, hue, intensity, seed } = controls(properties),
+	const { phase, hue, intensity, seed, viewX, viewY } = controls(properties),
 		next = random(seed);
 	const count = Math.floor(number(properties, "--flow-density", 550, 10, 1000));
 	const turbulence = number(properties, "--flow-turbulence", 2.4, 0.1, 8);
@@ -15,19 +15,21 @@ export function paint(ctx: PaintContext, size: PaintSize, properties: PaintPrope
 	ctx.save();
 	ctx.globalCompositeOperation = "lighter";
 	ctx.lineCap = "round";
+	glow(ctx, size.width * (0.48 + viewX * 0.1), size.height * (0.5 + viewY * 0.1), scale * 0.7, `hsla(${hue + 25}, 85%, 45%, ${intensity * 0.13})`);
 	for (let line = 0; line < count; line++) {
 		let x = next() * size.width,
 			y = next() * size.height;
 		const start = { x, y };
 		const tint = hue + (x / size.width) * 95 + next() * 30;
-		const alpha = (0.3 + next() * 0.6) * intensity;
+		const depth = 0.2 + next() * 0.8;
+		const alpha = (0.15 + depth * 0.7) * intensity;
 		ctx.strokeStyle = `hsla(${tint}, 85%, ${55 + next() * 25}%, ${alpha})`;
 		ctx.lineWidth = 0.45 + next() * 1.1;
 		ctx.beginPath();
 		ctx.moveTo(x, y);
 		for (let step = 0; step < length; step++) {
-			const nx = (x - size.width / 2) / scale,
-				ny = (y - size.height / 2) / scale;
+			const nx = (x - size.width * (0.5 + viewX * 0.15)) / scale,
+				ny = (y - size.height * (0.5 + viewY * 0.15)) / scale;
 			const angle = Math.sin(nx * turbulence * 3 + Math.sin(phase) * 0.7) + Math.cos(ny * turbulence * 3 - Math.cos(phase) * 0.7);
 			const orbit = Math.atan2(ny, nx) + Math.PI / 2;
 			const blend = Math.min(0.94, vortex / (1 + Math.hypot(nx, ny) * 3));
@@ -40,8 +42,15 @@ export function paint(ctx: PaintContext, size: PaintSize, properties: PaintPrope
 		gradient.addColorStop(0.6, `hsla(${tint + 15}, 90%, 72%, ${alpha})`);
 		gradient.addColorStop(1, `hsla(${tint + 25}, 95%, 85%, ${alpha})`);
 		ctx.strokeStyle = gradient;
+		if (line % 7 === 0) {
+			ctx.globalAlpha = 0.12;
+			ctx.lineWidth = 5 * depth;
+			ctx.stroke();
+		}
+		ctx.globalAlpha = 1;
+		ctx.lineWidth = 0.35 + depth * 1.4;
 		ctx.stroke();
-		if (line % 16 === 0) glow(ctx, x, y, 5, `hsla(${tint + 20}, 90%, 75%, ${0.35 * intensity})`);
+		if (line % 11 === 0) glow(ctx, x, y, 4 + depth * 6, `hsla(${tint + 20}, 90%, 75%, ${0.35 * intensity})`);
 	}
 	ctx.restore();
 }

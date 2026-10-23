@@ -1,8 +1,68 @@
 import { test, expect } from "@playwright/test";
 
-const names = ["Aurora", "Particles", "Cursor", "Flow field", "Ripples", "Iridescence", "Caustics", "Vortex", "Terrain"];
+const names = [
+	"Aurora",
+	"Particles",
+	"Cursor",
+	"Flow field",
+	"Ripples",
+	"Iridescence",
+	"Caustics",
+	"Vortex",
+	"Terrain",
+	"Nebula",
+	"Metaballs",
+	"Kaleidoscope",
+];
 
-test("all nine actual paint worklets render, animate, and expose working presets", async function rendering({ page }) {
+test("immersive pointer lighting eases, recenters, and cleans up across effects", async function viewInteraction({ page }) {
+	await page.goto("/#effect=metaballs");
+	await expect(page.locator("html")).toHaveAttribute("data-ready", "true");
+	const surface = page.locator("#surface"),
+		box = (await surface.boundingBox())!;
+	await surface.evaluate(function freeze(node) {
+		node.style.animation = "none";
+		node.style.setProperty("--worklet-time", "0.25");
+	});
+	const before = await surface.screenshot();
+	await page.mouse.move(box.x + box.width * 0.85, box.y + box.height * 0.3);
+	await expect
+		.poll(async function position() {
+			return surface.evaluate(function read(node) {
+				return Number(node.style.getPropertyValue("--worklet-pointer-x"));
+			});
+		})
+		.toBeCloseTo(0.85, 2);
+	expect(before.equals(await surface.screenshot())).toBe(false);
+	await page.mouse.move(5, 5);
+	await expect
+		.poll(async function center() {
+			return surface.evaluate(function read(node) {
+				return Number(node.style.getPropertyValue("--worklet-pointer-x"));
+			});
+		})
+		.toBe(0.5);
+	await page.getByRole("button", { name: "Cursor", exact: true }).click();
+	await page.mouse.move(box.x + 220, box.y + 220);
+	await page.evaluate(function frame() {
+		return new Promise(requestAnimationFrame);
+	});
+	expect(
+		await surface.evaluate(function clean(node) {
+			return node.style.getPropertyValue("--worklet-pointer-x");
+		}),
+	).toBe("");
+	await page.emulateMedia({ reducedMotion: "reduce" });
+	await page.getByRole("button", { name: "Metaballs", exact: true }).click();
+	await page.mouse.move(box.x + 120, box.y + 120);
+	expect(
+		await surface.evaluate(function stable(node) {
+			return node.style.getPropertyValue("--worklet-pointer-x");
+		}),
+	).toBe("");
+});
+
+test("all twelve actual paint worklets render, animate, and expose working presets", async function rendering({ page }) {
 	const errors: string[] = [];
 	page.on("pageerror", function error(value) {
 		errors.push(value.message);

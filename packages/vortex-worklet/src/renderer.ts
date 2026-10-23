@@ -1,4 +1,4 @@
-import { commonProperties, controls, drawable, glow, number, TAU } from "../../core/src/index.ts";
+import { commonProperties, controls, drawable, glow, number, random, TAU } from "../../core/src/index.ts";
 import type { PaintContext, PaintProperties, PaintSize } from "../../core/src/types.ts";
 
 export const inputProperties = [
@@ -92,7 +92,7 @@ function lensedImage(ctx: PaintContext, disk: Disk, lensing: number, underside: 
 /** Paint an illustrative black-hole accretion disk with correct depth ordering and bounded vector geometry. @param ctx Paint context. @param size CSS dimensions. @param properties CSS inputs. */
 export function paint(ctx: PaintContext, size: PaintSize, properties: PaintProperties): void {
 	if (!drawable(size)) return;
-	const { phase, hue, intensity, seed } = controls(properties);
+	const { phase, hue, intensity, seed, viewX, viewY } = controls(properties);
 	const rings = Math.floor(number(properties, "--vortex-rings", 100, 20, 160));
 	const tilt = (number(properties, "--vortex-tilt", -8, -60, 60) * Math.PI) / 180;
 	const lensing = number(properties, "--vortex-lensing", 0.9, 0, 1.5);
@@ -106,12 +106,22 @@ export function paint(ctx: PaintContext, size: PaintSize, properties: PaintPrope
 		phase,
 		seed,
 		rings,
-		inclination: number(properties, "--vortex-inclination", 0.12, 0.04, 0.5),
+		inclination: number(properties, "--vortex-inclination", 0.12, 0.04, 0.5) + viewY * 0.035,
 	};
 	ctx.save();
-	ctx.translate(size.width / 2, size.height / 2);
+	const next = random(seed);
+	for (let star = 0; star < 100; star++) {
+		const x = next() * size.width,
+			y = next() * size.height;
+		const distance = Math.hypot(x - size.width / 2, y - size.height / 2);
+		if (distance < shadow * 2.5) continue;
+		const depth = next();
+		ctx.fillStyle = `rgba(195, 215, 245, ${(0.1 + depth * 0.3) * intensity})`;
+		ctx.fillRect(x + viewX * depth * 16, y + viewY * depth * 16, 0.5 + depth, 0.5 + depth);
+	}
+	ctx.translate(size.width * 0.5 + viewX * radius * 0.07, size.height * 0.5 + viewY * radius * 0.07);
 	ctx.rotate(tilt);
-	glow(ctx, -shadow * 0.5, 0, radius * 0.75, `hsla(${hue}, 90%, 45%, ${0.08 * intensity})`);
+	glow(ctx, -shadow * 0.5, 0, radius * 0.75, `hsla(${hue}, 90%, 45%, ${0.14 * intensity})`);
 	accretion(ctx, disk, false);
 	lensedImage(ctx, disk, lensing, false);
 	lensedImage(ctx, disk, lensing, true);
@@ -128,5 +138,7 @@ export function paint(ctx: PaintContext, size: PaintSize, properties: PaintPrope
 		ctx.stroke();
 	}
 	accretion(ctx, disk, true);
+	ctx.globalCompositeOperation = "lighter";
+	glow(ctx, -shadow * 1.4, shadow * disk.inclination, radius * 0.22, `hsla(${hue + 20}, 75%, 65%, ${0.18 * intensity})`);
 	ctx.restore();
 }

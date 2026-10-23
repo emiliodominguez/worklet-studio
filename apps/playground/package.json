@@ -17,6 +17,9 @@
 		"iridescence-worklet": "*",
 		"caustics-worklet": "*",
 		"vortex-worklet": "*",
-		"terrain-worklet": "*"
+		"terrain-worklet": "*",
+		"nebula-worklet": "*",
+		"metaballs-worklet": "*",
+		"kaleidoscope-worklet": "*"
 	}
 }
