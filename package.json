@@ -19,12 +19,13 @@
 		"test:browser": "playwright test",
 		"format": "prettier --write .",
 		"format:check": "prettier --check .",
-		"check": "npm run build && npm run typecheck && npm run test && npm run test:browser && npm run format:check",
+		"check": "npm run build && npm run typecheck && npm run test && npm run test:browser && npm run codepens:check && npm run format:check",
 		"pack:check": "npm run build && node scripts/check-packages.mjs",
 		"release:dry-run": "npm run check && node scripts/release.mjs --dry-run",
 		"release:publish": "npm run check && node scripts/release.mjs --publish",
-		"codepens:prepare": "node scripts/codepens.mjs",
-		"codepens:publish": "npm run codepens:prepare && node scripts/publish-codepens.mjs --publish"
+		"codepens:prepare": "node scripts/codepens/prepare.mjs",
+		"codepens:publish": "npm run codepens:prepare && node scripts/codepens/publish.mjs --publish",
+		"codepens:check": "npm run codepens:prepare && node scripts/codepens/publish.mjs"
 	},
 	"devDependencies": {
 		"@playwright/test": "1.64.1",

@@ -16,6 +16,8 @@ npm run dev
 
 The studio runs at `http://127.0.0.1:4173`. The atrium is at `/atrium.html`.
 
+See the [workspace guide](docs/architecture.md) for the package layout and steps for adding an effect. The [documentation index](docs/README.md) links the release and migration guides.
+
 ## Before a pull request
 
 ```sh

@@ -149,6 +149,19 @@ The original npm tarballs and extracted source are preserved verbatim in `recove
 
 `particles-worklet` and `cursor-worklet` retain their package names, root `worklet.js` entry, paint names, and original custom-property names. Their current versions are 1.1.0. `architecture-worklet` starts at 0.1.0. See [migration notes](docs/migration.md) and [release procedure](docs/releasing.md).
 
+## Repository layout
+
+| Directory                              | Contents                                                     |
+| -------------------------------------- | ------------------------------------------------------------ |
+| [`packages/`](packages/)               | Thirteen public worklets and the private shared core         |
+| [`apps/playground/`](apps/playground/) | The visual studio and full-screen atrium                     |
+| [`scripts/`](scripts/)                 | Builds, package checks, npm releases and CodePen tooling     |
+| [`tests/`](tests/)                     | Unit tests and browser checks                                |
+| [`docs/`](docs/)                       | Workspace guide, releases, migration notes and CodePen links |
+| [`recovery/`](recovery/)               | Original npm sources preserved for provenance                |
+
+Build output, release archives and generated Pens stay in ignored directories. See the [workspace guide](docs/architecture.md) for package boundaries and how to add an effect.
+
 ## Contributing
 
 Found a rendering bug or have an effect to try? [Open an issue](https://github.com/emiliodominguez/worklet-studio/issues) or read [CONTRIBUTING.md](CONTRIBUTING.md).

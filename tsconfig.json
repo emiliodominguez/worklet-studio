@@ -10,7 +10,9 @@
 		"allowImportingTsExtensions": true,
 		"skipLibCheck": true,
 		"verbatimModuleSyntax": true,
-		"paths": { "cursor-worklet/register": ["./packages/cursor-worklet/src/register.ts"] }
+		"paths": {
+			"*-worklet/register": ["./packages/*-worklet/src/register.ts"]
+		}
 	},
 	"include": ["packages/**/*.ts", "apps/**/*.ts", "tests/**/*.ts", "playwright.config.ts"]
 }

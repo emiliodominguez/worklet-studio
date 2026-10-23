@@ -1,8 +1,8 @@
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { resolve } from "node:path";
-import { experiments } from "../apps/playground/src/catalog.ts";
+import { experiments } from "../../apps/playground/src/catalog.ts";
 
-const root = resolve(import.meta.dirname, "..");
+const root = resolve(import.meta.dirname, "../..");
 const directory = resolve(root, "artifacts/codepens");
 const statePath = resolve(directory, "published.json");
 const collection = "bNWgYw";

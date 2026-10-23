@@ -1,35 +1,40 @@
-# Worklet Studio
+# Visual design
 
-A live cabinet of optical experiments. The effect gets most of the screen; controls and code sit beside it like instruments in a light lab. No canvas element, video, or image assets in the showcase: actual CSS Paint API output.
+The live paint effect takes most of the screen. Controls, presets and source examples stay close to it. The studio contains thirteen effects and forty-six presets; architecture is the opening effect.
 
-Palette: ink #101219, slate #191d28, frost #f0f2fa, muted #9aa2b6, periwinkle #a9b9ff, coral #ffb1a8. The worklets supply saturated spectral color; the surrounding UI stays quiet.
+## Studio
 
-Type: system sans for readable controls, a large tightly spaced sans headline, monospace only for actual CSS. Layout: compact navigation above a wide immersive stage, a narrow control column on desktop, controls beneath on mobile. Effect selection is a horizontal strip, not a grid of identical cards.
+The interface uses an ink background, slate panels, pale text and restrained periwinkle accents. Saturated color comes from the painters. Use system fonts for controls and monospace for CSS and code.
 
-```
-Worklet Studio                           About / Source recovery
-Make CSS a little unreal.                9 paint experiments
-[Aurora] [Particles] [Cursor] [Flow] [Ripples] [Iridescence] [Caustics] [Vortex] [Terrain]
-[                                         ][ Effect + preset ]
-[            Live painted surface         ][ Controls        ]
-[                                         ][ Copy recipe     ]
-[ Pause / full screen                     ][ CSS             ]
-```
+Effect navigation sits above the painted surface. Desktop controls sit beside it; smaller screens place controls underneath. Cursors have a separate preset shelf so their different materials are easy to find. All icons are SVG.
 
-Review: dark framing is appropriate for light emission effects, but a generic neon dashboard would compete with them. Keep only the live surface colorful. Every control changes real paint inputs. Aurora is the opening artwork; presets must change composition as well as hue. Honor reduced motion, keyboard access, and unsupported browsers explicitly.
+Every control changes a real CSS input. Presets should change composition or behavior as well as hue. Recipes include the package loader and the appropriate interaction helper.
 
-## Second visual pass
+## Atrium
 
-Keep the existing type, palette, SVG icon language, and quiet framing. Spend the extra detail in the paintings: crisp light cores inside soft bloom, tapered motion trails, layered depth, and coherent spectra. Cursor presets should differ in silhouette and behavior, not only hue. The six cursor forms are ripple, orbit, ribbon, comet, plasma, and lens; real pointer history and press input make them feel responsive. Add a visible cursor preset shelf above the stage so these variations are immediately discoverable.
+The dedicated atrium page fills the viewport with one painted background. Navigation stays at the top, with the title and controls along the bottom. The architecture uses concrete galleries, suspended walkways, stair treads, a bronze ring and a reflecting pool.
 
-New surfaces: animated water caustics, a tilted gravitational vortex, and luminous terrain contours. Review: avoid another generic rainbow wash. Caustics should read as refracted blue light, vortex as a disk with depth and a dark center, and terrain as elevation revealed by linework. Keep nine effect tabs wrapping on desktop and scrolling on mobile. No text-glyph icons.
+Daylight, late afternoon and night change the lighting. The camera follows a constrained path through the building. Floor separation pulls the camera outside so the gallery structure remains visible. The tour uses CSS animation; the npm helper supplies pointer and keyboard navigation.
 
-## Vortex realism pass
+## Materials
 
-The first vortex read as a folded sheet because a Gaussian deformation pulled the orbital lines into an elevated peak. Replace that construction with a thin foreground disk, a larger circular shadow, an upper lensed image and a compressed lower image. Use warm radial cooling, unequal brightness across the disk, and moving gas lanes. Keep the surrounding studio unchanged. The new disk-opening control separates foreshortening from screen rotation. [NASA's visualization](https://svs.gsfc.nasa.gov/13326/) provides the visual reference; the worklet remains a vector illustration rather than a physical simulation.
+| Effect       | Visual cues                                                                                                     |
+| ------------ | --------------------------------------------------------------------------------------------------------------- |
+| Cursor       | Distinct ripple, orbit, silk, comet, plasma and glass silhouettes; bounded pointer trails and press compression |
+| Aurora       | Folded ribbons, bright fiber cores and softer surrounding light                                                 |
+| Caustics     | Curved cells of focused light beneath blue water                                                                |
+| Vortex       | A thin tilted disk, dark circular center, lensed arcs and hotter inner gas                                      |
+| Terrain      | Contour lines, shaded ridges and occlusion                                                                      |
+| Nebula       | Emission clouds, dark dust lanes and stars at different depths                                                  |
+| Metaballs    | Merging silhouettes, reflected light and surface normals                                                        |
+| Kaleidoscope | Mirrored crystal facets and traveling highlights                                                                |
 
-## Immersive material pass
+The vortex is an illustration informed by [NASA's black hole visualization](https://svs.gsfc.nasa.gov/13326/). It is not a physical simulation. The same distinction applies to the atrium's lighting and reflections.
 
-Keep the quiet ink/slate framing, frost typography, and SVG controls. The paintings carry the visual change. Make the surfaces feel illuminated and spatial: normal-based studio reflections on liquid and foil, depth-sorted ribbon faces, occluding terrain layers, volumetric-looking cloud emission and absorption, parallax stars, and reflective cursor materials. Add nebula, metaballs, and kaleidoscope for twelve effects and forty-two presets.
+## Interaction and review
 
-Review against the brief: avoid giving every effect the same rainbow bloom. Keep deep blue water, coherent sapphire crystals, colored gas against black dust, and material-specific cursor silhouettes. The first sampled surface pass showed horizontal seams and jagged droplet edges; replace flat bands with interpolated scanlines and continuous silhouette clipping. Keep the original cursor rings animated and API-compatible. Pointer lighting and parallax should settle and stop, respect reduced motion, and be available in copied recipes.
+Keep keyboard focus visible, preserve touch scrolling, provide pause controls and honor reduced motion. Pause hidden surfaces. Browsers without CSS Paint receive a static fallback and an explanation.
+
+Review both stationary and moving states. Look for banding, jagged silhouettes, clipped glow, excessive bloom and changes that are too subtle to notice. Check the full-screen experience as well as the smaller studio preview.
+
+The images in `docs/media/` are captures of actual CSS Paint output. The effects do not use canvas elements, video or image sequences.

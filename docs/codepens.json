@@ -85,6 +85,15 @@
 			"url": "https://codepen.io/emilio-dominguez/pen/LEWBpgw",
 			"editor": "Classic",
 			"inCollection": true
+		},
+		"architecture": {
+			"id": "01a16700-28de-7890-b759-673165ab1226",
+			"title": "[CSS] Atrium: a building painted with CSS",
+			"url": "https://codepen.io/editor/emilio-dominguez/pen/01a16700-28de-7890-b759-673165ab1226",
+			"preview": "https://01a16700-28de-7890-b759-673165ab1226.codepen.dev/",
+			"inCollection": true,
+			"editor": "V2",
+			"verifiedAt": "2026-10-23T04:28:08.063587+00:00"
 		}
 	}
 }

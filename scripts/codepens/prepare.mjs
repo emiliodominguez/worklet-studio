@@ -1,10 +1,11 @@
 import { readFile, mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { format } from "prettier";
-import { experiments } from "../apps/playground/src/catalog.ts";
-import { icon, brandMark } from "../apps/playground/src/icons.ts";
+import { experiments } from "../../apps/playground/src/catalog.ts";
+import { icon, brandMark } from "../../apps/playground/src/icons.ts";
+import { createAtriumPen } from "./atrium.mjs";
 
-const root = resolve(import.meta.dirname, "..");
+const root = resolve(import.meta.dirname, "../..");
 const output = resolve(root, "artifacts/codepens");
 await mkdir(output, { recursive: true });
 
@@ -168,6 +169,12 @@ async function start() {
 
 start();
 `;
+	if (effect.id === "architecture") {
+		const atrium = await createAtriumPen(packageUrl);
+		html = atrium.html;
+		css = atrium.css;
+		js = atrium.js;
+	}
 	const formatting = { useTabs: true, tabWidth: 4, printWidth: 100 };
 	html = await format(html.replaceAll("</section>", "</section>\n\n").replaceAll("</header>", "</header>\n\n"), {
 		...formatting,
@@ -177,8 +184,11 @@ start();
 	css = await format(css.replaceAll("}\n", "}\n\n"), { ...formatting, parser: "css" });
 	js = await format(js.replaceAll("\n/**", "\n\n/**").replaceAll("\nconst ", "\n\nconst "), { ...formatting, parser: "babel" });
 	const payload = {
-		title: `[CSS] ${effect.name} worklet`,
-		description: `${effect.description}\n\nAn interactive CSS Houdini Paint API experiment from Worklet Studio. ${effect.presets.length} presets, live CSS controls, pointer interaction, and reduced-motion support. Uses ${pkg.name}@${pkg.version} from npm via jsDelivr. Open in Chrome or Edge.`,
+		title: effect.id === "architecture" ? "[CSS] Atrium: a building painted with CSS" : `[CSS] ${effect.name} worklet`,
+		description:
+			effect.id === "architecture"
+				? `A concrete atrium rendered as a CSS background. Walk through its galleries, change the daylight, separate its floors or take the camera tour.\n\nThe renderer and pointer navigation come from ${pkg.name}@${pkg.version} on npm. No WebGL or Three.js. Open in Chrome or Edge.\n\nSource: https://github.com/emiliodominguez/worklet-studio\nPackage: https://www.npmjs.com/package/architecture-worklet`
+				: `${effect.description}\n\nAn interactive CSS Houdini Paint API experiment from Worklet Studio. ${effect.presets.length} presets, live CSS controls, pointer interaction, and reduced-motion support. Uses ${pkg.name}@${pkg.version} from npm via jsDelivr. Open in Chrome or Edge.`,
 		html,
 		css,
 		js,
