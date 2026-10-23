@@ -22,21 +22,21 @@ Use Chrome or Edge for the live effects. Other browsers receive a static fallbac
 
 All thirteen are available on npm. Package links below open their installation instructions and CSS controls.
 
-| Package                                               | Paint name     | Effect                                                         |
-| ----------------------------------------------------- | -------------- | -------------------------------------------------------------- |
-| [particles-worklet](packages/particles-worklet)       | `particles`    | Animated constellations and three-arm spiral galaxies          |
-| [cursor-worklet](packages/cursor-worklet)             | `cursor`       | Silk trails, comets, plasma, glass lenses, ripples, and orbits |
-| [aurora-worklet](packages/aurora-worklet)             | `aurora`       | Folded spectral ribbons and auroral curtains                   |
-| [flow-field-worklet](packages/flow-field-worklet)     | `flow-field`   | Generative magnetic streamlines                                |
-| [ripple-worklet](packages/ripple-worklet)             | `ripple`       | Liquid wavefronts and interference patterns                    |
-| [iridescence-worklet](packages/iridescence-worklet)   | `iridescence`  | Shimmering foil and contour surfaces                           |
-| [caustics-worklet](packages/caustics-worklet)         | `caustics`     | Curved underwater light cells                                  |
-| [vortex-worklet](packages/vortex-worklet)             | `vortex`       | Tilted accretion disks and gravitational light arcs            |
-| [terrain-worklet](packages/terrain-worklet)           | `terrain`      | Animated topographic wave contours                             |
-| [nebula-worklet](packages/nebula-worklet)             | `nebula`       | Emission clouds, dust lanes, and parallax stars                |
-| [metaballs-worklet](packages/metaballs-worklet)       | `metaballs`    | Merging liquid forms with reflective surface normals           |
-| [kaleidoscope-worklet](packages/kaleidoscope-worklet) | `kaleidoscope` | Mirrored crystal facets and traveling highlights               |
-| [architecture-worklet](packages/architecture-worklet) | `architecture` | An explorable concrete atrium, sunlight and water reflections  |
+| Package                                               | npm                                                       | Paint name     | Effect                                                         |
+| ----------------------------------------------------- | --------------------------------------------------------- | -------------- | -------------------------------------------------------------- |
+| [particles-worklet](packages/particles-worklet)       | [npm](https://www.npmjs.com/package/particles-worklet)    | `particles`    | Animated constellations and three-arm spiral galaxies          |
+| [cursor-worklet](packages/cursor-worklet)             | [npm](https://www.npmjs.com/package/cursor-worklet)       | `cursor`       | Silk trails, comets, plasma, glass lenses, ripples, and orbits |
+| [aurora-worklet](packages/aurora-worklet)             | [npm](https://www.npmjs.com/package/aurora-worklet)       | `aurora`       | Folded spectral ribbons and auroral curtains                   |
+| [flow-field-worklet](packages/flow-field-worklet)     | [npm](https://www.npmjs.com/package/flow-field-worklet)   | `flow-field`   | Generative magnetic streamlines                                |
+| [ripple-worklet](packages/ripple-worklet)             | [npm](https://www.npmjs.com/package/ripple-worklet)       | `ripple`       | Liquid wavefronts and interference patterns                    |
+| [iridescence-worklet](packages/iridescence-worklet)   | [npm](https://www.npmjs.com/package/iridescence-worklet)  | `iridescence`  | Shimmering foil and contour surfaces                           |
+| [caustics-worklet](packages/caustics-worklet)         | [npm](https://www.npmjs.com/package/caustics-worklet)     | `caustics`     | Curved underwater light cells                                  |
+| [vortex-worklet](packages/vortex-worklet)             | [npm](https://www.npmjs.com/package/vortex-worklet)       | `vortex`       | Tilted accretion disks and gravitational light arcs            |
+| [terrain-worklet](packages/terrain-worklet)           | [npm](https://www.npmjs.com/package/terrain-worklet)      | `terrain`      | Animated topographic wave contours                             |
+| [nebula-worklet](packages/nebula-worklet)             | [npm](https://www.npmjs.com/package/nebula-worklet)       | `nebula`       | Emission clouds, dust lanes, and parallax stars                |
+| [metaballs-worklet](packages/metaballs-worklet)       | [npm](https://www.npmjs.com/package/metaballs-worklet)    | `metaballs`    | Merging liquid forms with reflective surface normals           |
+| [kaleidoscope-worklet](packages/kaleidoscope-worklet) | [npm](https://www.npmjs.com/package/kaleidoscope-worklet) | `kaleidoscope` | Mirrored crystal facets and traveling highlights               |
+| [architecture-worklet](packages/architecture-worklet) | [npm](https://www.npmjs.com/package/architecture-worklet) | `architecture` | An explorable concrete atrium, sunlight and water reflections  |
 
 ## Run the studio
 

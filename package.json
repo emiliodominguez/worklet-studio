@@ -19,7 +19,7 @@
 		"test:browser": "playwright test",
 		"format": "prettier --write .",
 		"format:check": "prettier --check .",
-		"check": "npm run typecheck && npm run test && npm run build && npm run test:browser && npm run format:check",
+		"check": "npm run build && npm run typecheck && npm run test && npm run test:browser && npm run format:check",
 		"pack:check": "npm run build && node scripts/check-packages.mjs",
 		"release:dry-run": "npm run check && node scripts/release.mjs --dry-run",
 		"release:publish": "npm run check && node scripts/release.mjs --publish",
