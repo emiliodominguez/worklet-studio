@@ -41,5 +41,14 @@
 	},
 	"devDependencies": {
 		"@worklet-studio/core": "*"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/emiliodominguez/worklet-studio.git",
+		"directory": "packages/metaballs-worklet"
+	},
+	"homepage": "https://emiliodominguez.github.io/worklet-studio/#effect=metaballs",
+	"bugs": {
+		"url": "https://github.com/emiliodominguez/worklet-studio/issues"
 	}
 }

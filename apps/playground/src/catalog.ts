@@ -27,6 +27,26 @@ function control(property: string, label: string, min: number, max: number, step
 
 export const experiments: Experiment[] = [
 	{
+		id: "architecture",
+		name: "Architecture",
+		subtitle: "Enter the atrium.",
+		description:
+			"A concrete atrium with suspended bridges, staircases and a reflecting pool. Move to look around. Hold the pointer to separate the floors.",
+		hint: "Move to look. Hold to pull it apart.",
+		controls: [
+			control("--architecture-travel", "Camera position", 0, 1, 0.01, 0),
+			control("--architecture-daylight", "Daylight", 0, 1, 0.01, 0.85),
+			control("--architecture-explode", "Separate floors", 0, 1, 0.01, 0),
+			control("--architecture-detail", "Concrete detail", 0, 1, 0.1, 1),
+		],
+		presets: [
+			{ name: "Late afternoon", values: { "--architecture-daylight": 0.85 } },
+			{ name: "After hours", values: { "--architecture-daylight": 0.04, "--architecture-travel": 0.24 } },
+			{ name: "Upper galleries", values: { "--architecture-travel": 0.62, "--architecture-daylight": 1 } },
+			{ name: "Disassembled", values: { "--architecture-explode": 1, "--architecture-daylight": 0.92 } },
+		],
+	},
+	{
 		id: "aurora",
 		name: "Aurora",
 		subtitle: "Light, folded.",

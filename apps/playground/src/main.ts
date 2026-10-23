@@ -4,6 +4,8 @@ import { experiments } from "./catalog.ts";
 import type { Control } from "./catalog.ts";
 import { attachPointer } from "cursor-worklet/register";
 import { attachView } from "aurora-worklet/register";
+import { attachArchitecture } from "architecture-worklet/register";
+import architectureUrl from "architecture-worklet/worklet.js?url";
 import auroraUrl from "aurora-worklet/worklet.js?url";
 import particlesUrl from "particles-worklet/worklet.js?url";
 import cursorUrl from "cursor-worklet/worklet.js?url";
@@ -19,6 +21,7 @@ import metaballsUrl from "metaballs-worklet/worklet.js?url";
 import kaleidoscopeUrl from "kaleidoscope-worklet/worklet.js?url";
 
 const urls = [
+	architectureUrl,
 	auroraUrl,
 	particlesUrl,
 	cursorUrl,
@@ -53,12 +56,12 @@ function element<T extends HTMLElement = HTMLElement>(selector: string): T {
 element("#app").innerHTML = `
 	<header class="${styles["header"]}">
 		<a class="${styles["brand"]}" href="./" aria-label="Worklet Studio home"><span class="${styles["brand-mark"]}" aria-hidden="true">${brandMark()}</span> Worklet Studio</a>
-		<a href="#about" class="${styles["about-link"]}">A little CSS magic ${icon("arrow")}</a>
+		<a href="./atrium.html" class="${styles["about-link"]}">Enter the atrium ${icon("arrow")}</a>
 	</header>
 	<main class="${styles["main"]}">
 		<section class="${styles["intro"]}" aria-labelledby="headline">
 			<h1 id="headline">Make CSS a little unreal.</h1>
-			<p>Light. Motion. A few custom properties.<br>Twelve experiments at the edge of what a background can be.</p>
+			<p>Light. Motion. A few custom properties.<br>Thirteen experiments at the edge of what a background can be.</p>
 		</section>
 		<nav class="${styles["experiments"]}" aria-label="Choose an experiment">${experiments
 			.map(function tab(item, index) {
@@ -86,9 +89,9 @@ element("#app").innerHTML = `
 			<div class="${styles["recipe-intro"]}"><span class="${styles["code-symbol"]}" aria-hidden="true">${icon("code")}</span><div><h2 id="recipe-heading">Take the effect with you.</h2><p>One element. Your colors. Your motion.</p></div><button type="button" id="copy">${icon("copy")}Copy recipe</button></div>
 			<details><summary>${icon("chevron")}See the CSS and setup</summary><div class="${styles["recipe-code"]}"><pre><code id="css-code"></code></pre><pre><code id="js-code"></code></pre></div></details>
 		</section>
-		<section id="about" class="${styles["about"]}"><h2>Yes, this is a CSS background.</h2><p>Each experiment is a Houdini paint worklet: a small JavaScript painter that gives CSS a new kind of image. The animation is driven by a CSS custom property. No canvas elements, videos, or image sequences.</p><p>Made by Emilio Domínguez. Twelve independent packages, one shared studio. Chrome and Edge support CSS Paint; other browsers keep a static fallback. Motion pauses when the preview is out of view and respects your reduced-motion preference.</p></section>
+		<section id="about" class="${styles["about"]}"><h2>Yes, this is a CSS background.</h2><p>Each experiment is a Houdini paint worklet: a small JavaScript painter that gives CSS a new kind of image. The animation is driven by a CSS custom property. No canvas elements, videos, or image sequences.</p><p>Made by Emilio Domínguez. Thirteen independent packages, one shared studio. Chrome and Edge support CSS Paint; other browsers keep a static fallback. Motion pauses when the preview is out of view and respects your reduced-motion preference.</p></section>
 	</main>
-	<footer class="${styles["footer"]}"><span>Worklet Studio</span><span>Small packages. Unreasonable possibilities.</span></footer>
+	<footer class="${styles["footer"]}"><span>Worklet Studio</span><a href="https://github.com/emiliodominguez/worklet-studio">Source on GitHub ${icon("arrow")}</a></footer>
 	<p id="announcement" class="${styles["sr-only"]}" role="status" aria-live="polite"></p>
 `;
 
@@ -125,7 +128,8 @@ function cssRecipe(): string {
 function jsRecipe(): string {
 	const effect = experiments[selected];
 	const pointer = effect.id === "cursor";
-	return `// Vite: import the worklet as a hosted asset.\nimport { register, ${pointer ? "attachPointer" : "attachView"} } from "${effect.id}-worklet/register";\nimport workletUrl from "${effect.id}-worklet/worklet.js?url";\n\nawait register(workletUrl);\nconst cleanup = ${pointer ? 'attachPointer(document.querySelector(".art"), { smoothing: 0.24, trail: 32 })' : 'attachView(document.querySelector(".art"))'};\n// Call cleanup() when the element is removed.\n\n// HTML: <div class="art"></div>`;
+	const helper = pointer ? "attachPointer" : effect.id === "architecture" ? "attachArchitecture" : "attachView";
+	return `// Vite: import the worklet as a hosted asset.\nimport { register, ${helper} } from "${effect.id}-worklet/register";\nimport workletUrl from "${effect.id}-worklet/worklet.js?url";\n\nawait register(workletUrl);\nconst cleanup = ${helper}(document.querySelector(".art")${pointer ? ", { smoothing: 0.24, trail: 32 }" : ""});\n// Call cleanup() when the element is removed.\n\n// HTML: <div class="art"></div>`;
 }
 
 /** Update recipe text without recreating focused controls. */
@@ -197,7 +201,13 @@ function renderEffect(): void {
 	renderControls();
 	applyValues();
 	updateMotion();
-	if (ready) detachPointer = effect.id === "cursor" ? attachPointer(surface, { touch: true, smoothing: 0.24, trail: 32 }) : attachView(surface);
+	if (ready)
+		detachPointer =
+			effect.id === "cursor"
+				? attachPointer(surface, { touch: true, smoothing: 0.24, trail: 32 })
+				: effect.id === "architecture"
+					? attachArchitecture(surface)
+					: attachView(surface);
 }
 
 /** Copy text and announce success or a useful failure. @param text Text to copy. @param message Success message. */
@@ -285,7 +295,7 @@ pauseButton.addEventListener("click", function toggleMotion() {
 	updateMotion();
 });
 element("#copy").addEventListener("click", function copyRecipe() {
-	void copy(`/* CSS */\n${cssRecipe()}\n\n/* JavaScript — your app entry */\n${jsRecipe()}`, "Recipe copied");
+	void copy(`/* CSS */\n${cssRecipe()}\n\n/* JavaScript: your app entry */\n${jsRecipe()}`, "Recipe copied");
 });
 element("#share").addEventListener("click", function share() {
 	const params = new URLSearchParams({

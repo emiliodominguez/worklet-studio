@@ -20,6 +20,7 @@
 		"terrain-worklet": "*",
 		"nebula-worklet": "*",
 		"metaballs-worklet": "*",
-		"kaleidoscope-worklet": "*"
+		"kaleidoscope-worklet": "*",
+		"architecture-worklet": "*"
 	}
 }

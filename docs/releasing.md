@@ -1,8 +1,8 @@
 # Release all worklets
 
-The repository contains twelve public worklet packages. Core, the studio, and the root workspace are private. No publication happens during installation, building, testing, or dry runs.
+The repository contains thirteen public worklet packages. Core, the studio, and the root workspace are private. No publication happens during installation, building, testing, or dry runs.
 
-## First release
+## Publish a release
 
 From the repository root:
 
@@ -16,7 +16,7 @@ npm run release:publish
 
 Both release commands run TypeScript, unit tests, a production build, actual browser tests, and formatting checks before packing. The publish command authenticates against `https://registry.npmjs.org/`, checks access to existing names, and publishes the exact packed tarballs with public access. npm may request two-factor authentication interactively. Credentials remain in your npm configuration; the script does not collect or store them.
 
-Create the intended source repository and add its real `repository`, `homepage`, and `bugs` URLs to package manifests so future users can find the code from npm. This checkout has no configured remote; the release script does not create one.
+Package manifests link to [the source repository](https://github.com/emiliodominguez/worklet-studio), the live demo and the issue tracker. Published versions are immutable: documentation and metadata changes also require a version bump before publishing again.
 
 ## Preview versions
 

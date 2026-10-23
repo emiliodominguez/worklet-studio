@@ -1,4 +1,6 @@
 const paths: Record<string, string> = {
+	architecture: '<path d="m3 8 9-5 9 5-9 5-9-5Zm0 5 9 5 9-5M3 18l9 5 9-5M3 8v10m18-10v10M12 3v10"/>',
+	close: '<path d="m6 6 12 12M6 18 18 6"/>',
 	nebula: '<path d="M4 15C-1 5 10 1 17 6s6 14-3 15S2 12 10 9s10 6 3 8"/><path d="M18 1v5m-2.5-2.5h5M3 19v3m-1.5-1.5h3"/>',
 	metaballs: '<path d="M11 5c5-6 13 1 9 6-2 2-1 4-2 7-2 5-10 3-9-2 0-3-1-3-4-3C0 13 1 5 6 6c2 1 3 1 5-1Z"/>',
 	kaleidoscope: '<path d="m12 2 4 6 6 4-6 4-4 6-4-6-6-4 6-4 4-6Zm0 0v20M2 12h20M8 8l8 8m0-8-8 8"/>',

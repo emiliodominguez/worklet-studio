@@ -1,0 +1,10 @@
+name: Effect idea
+description: Suggest a material, motion or interaction.
+body:
+    - type: textarea
+      id: idea
+      attributes:
+          label: What would you like to see?
+          description: Describe the appearance and interaction. Add a visual reference if you have one.
+      validations:
+          required: true

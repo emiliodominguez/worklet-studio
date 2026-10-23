@@ -41,5 +41,14 @@
 	},
 	"devDependencies": {
 		"@worklet-studio/core": "*"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/emiliodominguez/worklet-studio.git",
+		"directory": "packages/nebula-worklet"
+	},
+	"homepage": "https://emiliodominguez.github.io/worklet-studio/#effect=nebula",
+	"bugs": {
+		"url": "https://github.com/emiliodominguez/worklet-studio/issues"
 	}
 }

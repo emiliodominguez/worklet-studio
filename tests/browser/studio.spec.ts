@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 const names = [
+	"Architecture",
 	"Aurora",
 	"Particles",
 	"Cursor",
@@ -62,7 +63,7 @@ test("immersive pointer lighting eases, recenters, and cleans up across effects"
 	).toBe("");
 });
 
-test("all twelve actual paint worklets render, animate, and expose working presets", async function rendering({ page }) {
+test("all thirteen actual paint worklets render, animate, and expose working presets", async function rendering({ page }) {
 	const errors: string[] = [];
 	page.on("pageerror", function error(value) {
 		errors.push(value.message);
@@ -103,7 +104,7 @@ test("all twelve actual paint worklets render, animate, and expose working prese
 
 test("controls, reset, motion, copy, and shared settings work", async function controls({ page, context }) {
 	await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-	await page.goto("/");
+	await page.goto("/#effect=aurora");
 	await expect(page.locator("html")).toHaveAttribute("data-ready", "true");
 	await page.getByLabel("Threads", { exact: true }).fill("155");
 	await expect(page.locator("#css-code")).toContainText("--aurora-ribbons: 155");

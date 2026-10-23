@@ -4,7 +4,11 @@ A thin, turbulent accretion disk crossing a circular black-hole shadow, with len
 
 The silhouette draws on [NASA's black-hole accretion-disk visualization](https://svs.gsfc.nasa.gov/13326/). This painter uses bounded vector geometry to suggest those features; it is an artistic approximation, not a relativistic ray tracer. The colors remain art-directable through `--worklet-hue`.
 
-Zero runtime dependencies. One self-contained paint module, a minified alternative, and an optional typed loader. This checkout contains an **unpublished 0.1.0 candidate**; install a locally packed tarball until this version is released.
+Zero runtime dependencies. One self-contained paint module, a minified alternative, and an optional typed loader.
+
+```sh
+npm install vortex-worklet
+```
 
 ## Load
 

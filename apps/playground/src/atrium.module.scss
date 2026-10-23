@@ -1,0 +1,365 @@
+@property --worklet-time {
+	syntax: "<number>";
+	inherits: false;
+	initial-value: 0;
+}
+
+@property --architecture-explode {
+	syntax: "<number>";
+	inherits: false;
+	initial-value: 0;
+}
+
+@property --architecture-daylight {
+	syntax: "<number>";
+	inherits: false;
+	initial-value: 0.72;
+}
+
+@property --architecture-travel {
+	syntax: "<number>";
+	inherits: false;
+	initial-value: 0;
+}
+
+:global(*) {
+	box-sizing: border-box;
+}
+:global(body) {
+	margin: 0;
+	color: #f4f1e6;
+	background-color: #16272b;
+	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+:global(button),
+:global(input) {
+	font: inherit;
+}
+:global(button),
+:global(a) {
+	-webkit-tap-highlight-color: transparent;
+}
+:global(button:focus-visible),
+:global(a:focus-visible),
+:global(input:focus-visible) {
+	outline: 2px solid #f6d69c;
+	outline-offset: 5px;
+}
+:global(button) {
+	cursor: pointer;
+}
+:global(svg) {
+	width: 20px;
+	height: 20px;
+	flex-shrink: 0;
+}
+
+.experience {
+	position: relative;
+	min-height: 100svh;
+	overflow: clip;
+}
+.world {
+	position: fixed;
+	inset: 0;
+	background-color: #142c2f;
+	background-image: linear-gradient(150deg, #768280, #16282c 65%);
+	user-select: none;
+	touch-action: pan-y;
+	outline: none;
+	transition:
+		--architecture-daylight 1.8s ease,
+		--architecture-explode 0.55s ease;
+
+	&[data-ready="true"] {
+		background-image: paint(architecture);
+		animation: atmosphere 48s linear infinite;
+	}
+	&[data-tour="true"] {
+		animation:
+			atmosphere 48s linear infinite,
+			journey 65s ease-in-out infinite alternate;
+	}
+	&:focus-visible {
+		outline: 1px solid #f6d69c80;
+		outline-offset: -6px;
+	}
+}
+
+@keyframes atmosphere {
+	to {
+		--worklet-time: 1;
+	}
+}
+
+@keyframes journey {
+	from {
+		--architecture-travel: var(--tour-start, 0);
+	}
+	to {
+		--architecture-travel: 1;
+	}
+}
+
+.header {
+	position: relative;
+	z-index: 1;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 28px 36px;
+	pointer-events: none;
+	background-image: linear-gradient(#0a171a66, transparent);
+	a,
+	button {
+		pointer-events: auto;
+	}
+}
+.brand {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	color: inherit;
+	text-decoration: none;
+	font-size: 13px;
+	font-weight: 500;
+}
+.brand svg {
+	width: 30px;
+	height: 30px;
+}
+.header-actions {
+	display: flex;
+	gap: 20px;
+}
+.header-actions button {
+	display: inline-flex;
+	align-items: center;
+	gap: 9px;
+	border: 0;
+	padding: 8px;
+	color: inherit;
+	background-color: transparent;
+	font-size: 12px;
+}
+.status {
+	position: absolute;
+	left: 20%;
+	right: 20%;
+	top: 38%;
+	text-align: center;
+	font-size: 16px;
+	line-height: 1.6;
+}
+.status:empty {
+	display: none;
+}
+.footer {
+	position: absolute;
+	inset: auto 0 0;
+	padding: 130px 40px 38px;
+	display: flex;
+	align-items: end;
+	justify-content: space-between;
+	gap: 32px;
+	pointer-events: none;
+	background-image: linear-gradient(transparent, #081617a8);
+}
+.title {
+	text-shadow: 0 2px 22px #03101155;
+}
+.title p {
+	margin: 0;
+	font-size: 11px;
+	font-weight: 400;
+	color: #eeeee5c4;
+}
+.title h1 {
+	margin: 9px 0 14px -5px;
+	font-size: clamp(64px, 7.5vw, 112px);
+	line-height: 0.92;
+	font-weight: 350;
+	letter-spacing: -0.055em;
+}
+.title .instructions {
+	font-size: 12px;
+	color: #eeeee5c9;
+}
+.controls {
+	pointer-events: auto;
+	width: 310px;
+	flex-shrink: 0;
+}
+.lighting {
+	display: flex;
+	gap: 5px;
+	padding-bottom: 19px;
+}
+.lighting button {
+	padding: 9px 10px;
+	color: #e1e6ddd9;
+	background-color: #17323444;
+	border: 1px solid #d3e0d51a;
+	border-radius: 4px;
+	font-size: 11px;
+	white-space: nowrap;
+}
+.lighting button[aria-pressed="true"] {
+	color: #faf3df;
+	background-color: #e8c88f24;
+	border-color: #f0d8a64d;
+}
+.journey {
+	display: grid;
+	gap: 13px;
+}
+.journey label {
+	font-size: 11px;
+	color: #e1e6ddd9;
+}
+.journey input {
+	width: 100%;
+	height: 14px;
+	margin: 0;
+	accent-color: #f0d4a0;
+	cursor: ew-resize;
+}
+.actions {
+	display: flex;
+	justify-content: space-between;
+	padding-top: 18px;
+}
+.actions button {
+	display: inline-flex;
+	gap: 8px;
+	align-items: center;
+	color: #f0f0e6;
+	background-color: transparent;
+	border: 0;
+	padding: 4px 0;
+	font-size: 11px;
+}
+.actions button:disabled {
+	opacity: 0.5;
+	cursor: default;
+}
+.actions svg {
+	width: 16px;
+	height: 16px;
+}
+.source {
+	width: min(600px, calc(100vw - 32px));
+	max-height: 85svh;
+	padding: 30px;
+	border: 1px solid #526568;
+	border-radius: 12px;
+	background-color: #132729;
+	color: #eceee6;
+	box-shadow: 0 24px 100px #0008;
+}
+.source::backdrop {
+	background-color: #06171999;
+	backdrop-filter: blur(6px);
+}
+.dialog-heading {
+	display: flex;
+	justify-content: space-between;
+	align-items: start;
+	gap: 20px;
+}
+.dialog-heading h2 {
+	margin: 0;
+	font-size: 26px;
+	letter-spacing: -0.04em;
+	font-weight: 500;
+}
+.dialog-heading button {
+	color: inherit;
+	padding: 0;
+	background-color: transparent;
+	border: 0;
+}
+.source p {
+	font-size: 13px;
+	line-height: 1.7;
+	color: #b9cac8;
+}
+.source pre {
+	overflow: auto;
+	padding: 18px;
+	border-radius: 6px;
+	background-color: #0d1f21;
+	font-size: 12px;
+	line-height: 1.8;
+	tab-size: 4;
+}
+.source a {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	color: #f0d4a0;
+	font-size: 13px;
+	text-underline-offset: 4px;
+}
+
+@media (max-width: 700px) {
+	.header {
+		padding: 18px;
+	}
+	.header-actions {
+		gap: 6px;
+	}
+	.brand {
+		font-size: 11px;
+		gap: 8px;
+	}
+	.brand svg {
+		width: 24px;
+	}
+	.brand span {
+		display: none;
+	}
+	.header-actions button {
+		white-space: nowrap;
+		font-size: 11px;
+	}
+	.footer {
+		padding: 90px 22px 25px;
+		flex-direction: column;
+		align-items: stretch;
+		gap: 25px;
+	}
+	.title h1 {
+		font-size: 72px;
+		margin-bottom: 12px;
+	}
+	.title p {
+		font-size: 10px;
+	}
+	.title .instructions {
+		max-width: 270px;
+		font-size: 11px;
+		line-height: 1.6;
+	}
+	.controls {
+		width: 100%;
+	}
+	.lighting {
+		padding-bottom: 14px;
+	}
+	.actions {
+		padding-top: 12px;
+	}
+	.status {
+		left: 10%;
+		right: 10%;
+		top: 28%;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.world {
+		animation: none !important;
+		transition: none;
+	}
+}

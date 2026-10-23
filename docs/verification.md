@@ -1,5 +1,7 @@
 # Verification
 
+Entries below describe the checkout at the time of each check. Current remote checks are available in [GitHub Actions](https://github.com/emiliodominguez/worklet-studio/actions).
+
 ## Twelve-effect material and release revision
 
 Verified on 2026-10-22 in `/Users/emilio.dominguez/Repos/worklet-studio` with Node 26.12.1, npm 11.20.0, and Playwright Chromium 156.0.8078.4. This revision adds nebula, metaballs, kaleidoscope, shaded materials across the collection, and optional pointer lighting/parallax.

@@ -2,7 +2,11 @@
 
 Animated mirrored crystal facets with rotating layers, spectral seams, and traveling highlights.
 
-Zero runtime dependencies. One self-contained paint module, a minified alternative, and an optional typed loader. This checkout contains an **unpublished 0.1.0 candidate**; install a locally packed tarball until this version is released.
+Zero runtime dependencies. One self-contained paint module, a minified alternative, and an optional typed loader.
+
+```sh
+npm install kaleidoscope-worklet
+```
 
 ## Load
 

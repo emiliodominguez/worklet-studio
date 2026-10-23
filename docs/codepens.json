@@ -1,0 +1,90 @@
+{
+	"collection": "bNWgYw",
+	"verifiedAt": "2026-10-23T03:03:22.383Z",
+	"pens": {
+		"particles": {
+			"id": "01a166ae-44a8-7cb2-a55d-d1289481309b",
+			"title": "[CSS] Particles worklet",
+			"url": "https://codepen.io/editor/emilio-dominguez/pen/01a166ae-44a8-7cb2-a55d-d1289481309b",
+			"editor": "V2",
+			"inCollection": true
+		},
+		"aurora": {
+			"id": "01a166b1-75ff-7910-ba62-f6d724fcd8c4",
+			"title": "[CSS] Aurora worklet",
+			"url": "https://codepen.io/editor/emilio-dominguez/pen/01a166b1-75ff-7910-ba62-f6d724fcd8c4",
+			"editor": "V2",
+			"inCollection": true
+		},
+		"cursor": {
+			"id": "01a166b1-9283-7d48-8ce1-01a2800023cf",
+			"title": "[CSS] Cursor worklet",
+			"url": "https://codepen.io/editor/emilio-dominguez/pen/01a166b1-9283-7d48-8ce1-01a2800023cf",
+			"editor": "V2",
+			"inCollection": true
+		},
+		"flow-field": {
+			"id": "RNpBWeW",
+			"title": "[CSS] flow-field worklet",
+			"url": "https://codepen.io/emilio-dominguez/pen/RNpBWeW",
+			"editor": "Classic",
+			"inCollection": true
+		},
+		"ripple": {
+			"id": "ByWPoqp",
+			"title": "[CSS] ripple worklet",
+			"url": "https://codepen.io/emilio-dominguez/pen/ByWPoqp",
+			"editor": "Classic",
+			"inCollection": true
+		},
+		"iridescence": {
+			"id": "jEBpbea",
+			"title": "[CSS] iridescence worklet",
+			"url": "https://codepen.io/emilio-dominguez/pen/jEBpbea",
+			"editor": "Classic",
+			"inCollection": true
+		},
+		"caustics": {
+			"id": "pveZjxa",
+			"title": "[CSS] caustics worklet",
+			"url": "https://codepen.io/emilio-dominguez/pen/pveZjxa",
+			"editor": "Classic",
+			"inCollection": true
+		},
+		"vortex": {
+			"id": "yyMqYRK",
+			"title": "[CSS] vortex worklet",
+			"url": "https://codepen.io/emilio-dominguez/pen/yyMqYRK",
+			"editor": "Classic",
+			"inCollection": true
+		},
+		"terrain": {
+			"id": "emvjpPL",
+			"title": "[CSS] terrain worklet",
+			"url": "https://codepen.io/emilio-dominguez/pen/emvjpPL",
+			"editor": "Classic",
+			"inCollection": true
+		},
+		"nebula": {
+			"id": "zxZLvmy",
+			"title": "[CSS] nebula worklet",
+			"url": "https://codepen.io/emilio-dominguez/pen/zxZLvmy",
+			"editor": "Classic",
+			"inCollection": true
+		},
+		"metaballs": {
+			"id": "azJjvRM",
+			"title": "[CSS] metaballs worklet",
+			"url": "https://codepen.io/emilio-dominguez/pen/azJjvRM",
+			"editor": "Classic",
+			"inCollection": true
+		},
+		"kaleidoscope": {
+			"id": "LEWBpgw",
+			"title": "[CSS] kaleidoscope worklet",
+			"url": "https://codepen.io/emilio-dominguez/pen/LEWBpgw",
+			"editor": "Classic",
+			"inCollection": true
+		}
+	}
+}

@@ -2,7 +2,11 @@
 
 Animated generative flow fields and magnetic streamlines.
 
-Zero runtime dependencies. One self-contained paint module, a minified alternative, and an optional typed loader. This checkout contains an **unpublished 0.1.0 candidate**; install a locally packed tarball until this version is released.
+Zero runtime dependencies. One self-contained paint module, a minified alternative, and an optional typed loader.
+
+```sh
+npm install flow-field-worklet
+```
 
 ## Load
 

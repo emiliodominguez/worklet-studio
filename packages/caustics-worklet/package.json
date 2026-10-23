@@ -25,7 +25,7 @@
 		"./worklet.js",
 		"./worklet.min.js"
 	],
-	"author": "Emilio Dom\u00ednguez",
+	"author": "Emilio Domínguez",
 	"license": "MIT",
 	"keywords": [
 		"css",
@@ -41,5 +41,14 @@
 	},
 	"devDependencies": {
 		"@worklet-studio/core": "*"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/emiliodominguez/worklet-studio.git",
+		"directory": "packages/caustics-worklet"
+	},
+	"homepage": "https://emiliodominguez.github.io/worklet-studio/#effect=caustics",
+	"bugs": {
+		"url": "https://github.com/emiliodominguez/worklet-studio/issues"
 	}
 }

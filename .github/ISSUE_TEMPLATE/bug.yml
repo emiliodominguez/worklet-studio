@@ -1,0 +1,24 @@
+name: Rendering bug
+description: Report a broken effect, interaction or package.
+body:
+    - type: input
+      id: effect
+      attributes:
+          label: Effect and version
+          placeholder: architecture-worklet 0.1.0
+      validations:
+          required: true
+    - type: input
+      id: environment
+      attributes:
+          label: Browser and device
+          placeholder: Chrome version, operating system and device
+      validations:
+          required: true
+    - type: textarea
+      id: reproduction
+      attributes:
+          label: What happened?
+          description: Include steps, expected behavior and the relevant CSS properties. A small demo or screenshot helps.
+      validations:
+          required: true

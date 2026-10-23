@@ -1,4 +1,10 @@
-# Unreleased
+# Changelog
+
+## architecture-worklet 0.1.0
+
+An explorable concrete atrium with four gallery levels, bridges, stair treads, a suspended bronze light sculpture and a reflecting pool. CSS properties control the camera, daylight and floor separation. Pointer and keyboard helpers include cleanup and reduced-motion handling.
+
+The studio now includes 13 worklets, 46 presets and a dedicated atrium demo with a camera tour. CodePen demos load the published npm packages. The public playground is deployed through GitHub Pages.
 
 ## particles-worklet 1.1.0
 

@@ -16,7 +16,8 @@ import { paint as terrain } from "../packages/terrain-worklet/src/renderer.ts";
 import { paint as nebula } from "../packages/nebula-worklet/src/renderer.ts";
 import { paint as metaballs } from "../packages/metaballs-worklet/src/renderer.ts";
 import { paint as kaleidoscope } from "../packages/kaleidoscope-worklet/src/renderer.ts";
-const painters = { nebula, metaballs, kaleidoscope, aurora, particles, cursor, flow, ripple, iridescence, caustics, vortex, terrain };
+import { paint as architecture } from "../packages/architecture-worklet/src/renderer.ts";
+const painters = { architecture, nebula, metaballs, kaleidoscope, aurora, particles, cursor, flow, ripple, iridescence, caustics, vortex, terrain };
 
 /** Record the supported paint operations and reject invalid geometry. @param painter Painter to invoke. @param values CSS inputs. @param width Surface width. @param height Surface height. @returns Recorded operations. */
 function render(painter: Painter, values: Record<string, string | number> = {}, width = 800, height = 500): unknown[][] {

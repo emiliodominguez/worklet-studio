@@ -22,7 +22,9 @@
 		"check": "npm run typecheck && npm run test && npm run build && npm run test:browser && npm run format:check",
 		"pack:check": "npm run build && node scripts/check-packages.mjs",
 		"release:dry-run": "npm run check && node scripts/release.mjs --dry-run",
-		"release:publish": "npm run check && node scripts/release.mjs --publish"
+		"release:publish": "npm run check && node scripts/release.mjs --publish",
+		"codepens:prepare": "node scripts/codepens.mjs",
+		"codepens:publish": "npm run codepens:prepare && node scripts/publish-codepens.mjs --publish"
 	},
 	"devDependencies": {
 		"@playwright/test": "1.64.1",
@@ -33,5 +35,13 @@
 		"turbo": "2.11.10",
 		"typescript": "7.0.2",
 		"vite": "8.3.5"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/emiliodominguez/worklet-studio.git"
+	},
+	"homepage": "https://emiliodominguez.github.io/worklet-studio/",
+	"bugs": {
+		"url": "https://github.com/emiliodominguez/worklet-studio/issues"
 	}
 }

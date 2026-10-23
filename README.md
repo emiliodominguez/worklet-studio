@@ -1,6 +1,26 @@
 # Worklet Studio
 
-Twelve small CSS Houdini packages for unusually expressive backgrounds. A Turborepo with independent, zero-runtime-dependency worklets and a live visual playground.
+**This building is a CSS background.**
+
+[![A concrete atrium with suspended walkways, a bronze light sculpture and a reflecting pool](docs/media/atrium.jpg)](https://emiliodominguez.github.io/worklet-studio/atrium.html)
+
+[Enter the atrium](https://emiliodominguez.github.io/worklet-studio/atrium.html) · [Try all 13 effects](https://emiliodominguez.github.io/worklet-studio/) · [CodePen collection](https://codepen.io/collection/bNWgYw)
+
+Move to look around. Scroll into the building. Hold to separate its floors, or take the camera tour.
+
+Thirteen CSS Paint worklets for architecture, animated cursors, particles and procedural materials. Each is a small npm package with zero runtime dependencies. The studio has 46 presets and controls for editing the CSS properties behind each effect.
+
+The renderers are JavaScript programs loaded through the CSS Paint API. Their output is used by `background-image: paint(...)`; CSS properties control the scene and animation. No WebGL, Three.js, canvas elements or prerecorded visuals.
+
+Use Chrome or Edge for the live effects. Other browsers receive a static fallback.
+
+| Animated cursors                                                                                                          | Nebula                                                                                                                     | Water caustics                                                                                                                     |
+| ------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| [![A spectral silk cursor trail](docs/media/cursor.png)](https://emiliodominguez.github.io/worklet-studio/#effect=cursor) | [![Purple and blue nebula clouds](docs/media/nebula.png)](https://emiliodominguez.github.io/worklet-studio/#effect=nebula) | [![Light patterns beneath blue water](docs/media/caustics.png)](https://emiliodominguez.github.io/worklet-studio/#effect=caustics) |
+
+## Packages
+
+All thirteen are available on npm. Package links below open their installation instructions and CSS controls.
 
 | Package                                               | Paint name     | Effect                                                         |
 | ----------------------------------------------------- | -------------- | -------------------------------------------------------------- |
@@ -16,6 +36,7 @@ Twelve small CSS Houdini packages for unusually expressive backgrounds. A Turbor
 | [nebula-worklet](packages/nebula-worklet)             | `nebula`       | Emission clouds, dust lanes, and parallax stars                |
 | [metaballs-worklet](packages/metaballs-worklet)       | `metaballs`    | Merging liquid forms with reflective surface normals           |
 | [kaleidoscope-worklet](packages/kaleidoscope-worklet) | `kaleidoscope` | Mirrored crystal facets and traveling highlights               |
+| [architecture-worklet](packages/architecture-worklet) | `architecture` | An explorable concrete atrium, sunlight and water reflections  |
 
 ## Run the studio
 
@@ -26,10 +47,10 @@ npm ci
 npm run dev
 ```
 
-Open **http://127.0.0.1:4173** in Chrome or Edge. The studio has 42 presets, live property controls, SVG icons, pause/full-screen controls, shareable settings, and copyable CSS/JavaScript recipes. It uses actual CSS Paint output; there are no canvas elements, image sequences, or videos.
+Open **http://127.0.0.1:4173** in Chrome or Edge. The studio has 46 presets, live property controls, SVG icons, pause/full-screen controls, shareable settings, and copyable CSS/JavaScript recipes. It uses actual CSS Paint output; there are no canvas elements, image sequences, or videos.
 
 ```sh
-npm run build        # Twelve standalone packages + production playground
+npm run build        # Thirteen standalone packages + production playground
 npm run typecheck    # Strict TypeScript
 npm test            # Determinism, bounded inputs, legacy APIs, registration
 npx playwright install chromium
@@ -40,14 +61,14 @@ npm run check       # Full validation, including formatting
 
 The playground production output is `apps/playground/dist`. Serve it over HTTPS or localhost. Worklet JavaScript assets must retain a JavaScript MIME type and be reachable under your site's CSP.
 
+Open **http://127.0.0.1:4173/atrium.html** for the full-screen architecture experience. Move to look, scroll to enter, hold to separate the building, or start the camera tour.
+
 ## Use a worklet
 
-These are **local, unpublished release candidates**. npm still serves the original `particles-worklet@1.0.0` and `cursor-worklet@1.0.0`. To try the enhanced versions outside this repo, pack a workspace and install its tarball:
+Install the effect you want:
 
 ```sh
-npm pack --workspace aurora-worklet
-# In a separate application:
-npm install /absolute/path/to/aurora-worklet-0.1.0.tgz
+npm install aurora-worklet
 ```
 
 With Vite (the `?url` suffix is Vite-specific):
@@ -115,7 +136,7 @@ Paint time depends on surface size, device pixel ratio, and property values. Cou
 ## Publish all packages
 
 ```sh
-npm run release:dry-run  # Validate, pack, and rehearse all 12 public worklets
+npm run release:dry-run  # Validate, pack, and rehearse all 13 public worklets
 npm login               # Authenticate the npm account that owns your packages
 npm run release:publish # Publish all pending versions sequentially
 ```
@@ -124,8 +145,12 @@ Use `-- --tag next` on either release command for a preview release. Private cor
 
 ## Recovery and releases
 
-The original npm tarballs and extracted source are preserved verbatim in `recovery/`; see [recovery provenance](recovery/README.md). No original repository was located. No GitHub remote or npm release has been created by this reconstruction.
+The original npm tarballs and extracted source are preserved verbatim in `recovery/`; see [recovery provenance](recovery/README.md). No original repository was located.
 
-`particles-worklet` and `cursor-worklet` retain their package names, root `worklet.js` entry, paint names, and original custom-property names. Their planned versions are 1.1.0. New packages are 0.1.0 candidates. See [migration notes](docs/migration.md) and [release procedure](docs/releasing.md).
+`particles-worklet` and `cursor-worklet` retain their package names, root `worklet.js` entry, paint names, and original custom-property names. Their current versions are 1.1.0. `architecture-worklet` starts at 0.1.0. See [migration notes](docs/migration.md) and [release procedure](docs/releasing.md).
+
+## Contributing
+
+Found a rendering bug or have an effect to try? [Open an issue](https://github.com/emiliodominguez/worklet-studio/issues) or read [CONTRIBUTING.md](CONTRIBUTING.md).
 
 MIT © Emilio Domínguez.
