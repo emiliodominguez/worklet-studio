@@ -1,6 +1,6 @@
 {
 	"name": "architecture-worklet",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"description": "A three-dimensional concrete atrium painted as a CSS background, with reflections, sunlight and an explorable camera.",
 	"type": "module",
 	"main": "worklet.js",

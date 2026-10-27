@@ -1,6 +1,6 @@
 {
 	"name": "vortex-worklet",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"description": "A luminous accretion disk with gravitational lensing and a dark heart.",
 	"type": "module",
 	"main": "worklet.js",

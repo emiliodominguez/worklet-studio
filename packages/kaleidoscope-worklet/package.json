@@ -1,6 +1,6 @@
 {
 	"name": "kaleidoscope-worklet",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"description": "Animated mirrored crystal facets and radial optical patterns.",
 	"type": "module",
 	"main": "worklet.js",

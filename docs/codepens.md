@@ -20,7 +20,7 @@ The thirteen studio demos load their renderer and pointer helper from the publis
 | Metaballs    | [Open](https://codepen.io/emilio-dominguez/pen/azJjvRM)                                     |
 | Kaleidoscope | [Open](https://codepen.io/emilio-dominguez/pen/LEWBpgw)                                     |
 
-The architecture Pen reproduces the full [atrium experience](https://01a16700-28de-7890-b759-673165ab1226.codepen.dev/), including the camera tour, daylight settings and floor separation. Its HTML, CSS and control code are generated from the playground sources. The scene renderer and pointer navigation are imported from `architecture-worklet@0.1.0` on npm.
+The architecture Pen reproduces the full [atrium experience](https://01a16700-28de-7890-b759-673165ab1226.codepen.dev/), including the camera tour, daylight settings and floor separation. Its HTML, CSS and control code are generated from the playground sources. The scene renderer and pointer navigation are imported from `architecture-worklet@0.2.0` on npm.
 
 ## Prepare the source
 

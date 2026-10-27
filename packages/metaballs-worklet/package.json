@@ -1,6 +1,6 @@
 {
 	"name": "metaballs-worklet",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"description": "Merging liquid shapes with layered chromatic surfaces and glass highlights.",
 	"type": "module",
 	"main": "worklet.js",
