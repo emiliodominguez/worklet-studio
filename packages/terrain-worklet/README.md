@@ -1,6 +1,6 @@
 # terrain-worklet
 
-Luminous terrain contours with animated elevation and adjustable perspective.
+A moonlit mountain range painted into CSS backgrounds: hill-shaded ridges, atmospheric haze, valley mist and glowing contours.
 
 Zero runtime dependencies. One self-contained paint module, a minified alternative, and an optional typed loader.
 

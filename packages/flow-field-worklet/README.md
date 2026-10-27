@@ -1,6 +1,6 @@
 # flow-field-worklet
 
-Animated generative flow fields and magnetic streamlines.
+Animated generative flow fields: tapered, luminous streamlines with bloom and depth of field.
 
 Zero runtime dependencies. One self-contained paint module, a minified alternative, and an optional typed loader.
 

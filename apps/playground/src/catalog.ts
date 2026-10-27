@@ -77,7 +77,8 @@ export const experiments: Experiment[] = [
 		id: "particles",
 		name: "Particles",
 		subtitle: "A small universe.",
-		description: "A drifting constellation of light. Nearby stars find each other, drawing a delicate, living network.",
+		description:
+			"A drifting constellation in deep space. Nearby stars link up, the closest blur into soft bokeh, and the brightest flare into diffraction spikes.",
 		hint: "Increase reach to reveal the constellation",
 		controls: [
 			control("--particles-count", "Particles", 20, 500, 1, 180),
@@ -122,9 +123,10 @@ export const experiments: Experiment[] = [
 					"--particles-layout": "galaxy",
 					"--particles-background": "transparent",
 					"--worklet-hue": 215,
-					"--particles-count": 500,
-					"--particles-lines-threshold": 34,
-					"--particles-size-max": 2.5,
+					"--particles-count": 560,
+					"--particles-lines-threshold": 0,
+					"--particles-size-min": 0.4,
+					"--particles-size-max": 1.7,
 					"--particles-drift": 20,
 				},
 			},
@@ -225,7 +227,7 @@ export const experiments: Experiment[] = [
 		id: "flow-field",
 		name: "Flow field",
 		subtitle: "Order in the current.",
-		description: "Hundreds of fine streamlines reveal an invisible magnetic field. Follow the currents as they bend around its center.",
+		description: "Hundreds of silk streamlines reveal an invisible magnetic field. Near strands burn bright, far ones soften out of focus.",
 		hint: "Turn up the vortex to bend the field",
 		controls: [
 			control("--flow-density", "Streams", 100, 1000, 10, 650),
@@ -243,24 +245,33 @@ export const experiments: Experiment[] = [
 		id: "ripple",
 		name: "Ripples",
 		subtitle: "Touch the surface.",
-		description: "Overlapping wavefronts turn into a liquid interference pattern. Change the sources and watch a new geometry emerge.",
+		description:
+			"Spreading wavefronts cross and interfere, reflecting a dark photo studio. Clear water, liquid chrome, or molten gold, depending on the metal.",
 		hint: "Move your pointer to shift the wave sources",
 		controls: [
 			control("--ripple-rings", "Wavefronts", 10, 90, 1, 55),
 			control("--ripple-distortion", "Distortion", 0, 1.5, 0.05, 0.6),
 			control("--ripple-sources", "Sources", 1, 4, 1, 2),
+			control("--ripple-metal", "Metal", 0, 1, 0.05, 0.15),
 		],
 		presets: [
-			{ name: "Interference", values: { "--worklet-hue": 215, "--ripple-sources": 2, "--ripple-distortion": 0.6 } },
-			{ name: "Mercury", values: { "--worklet-hue": 280, "--ripple-sources": 1, "--ripple-distortion": 1.4, "--ripple-rings": 80 } },
-			{ name: "Resonance", values: { "--worklet-hue": 45, "--ripple-sources": 3, "--ripple-distortion": 0.15, "--ripple-rings": 42 } },
+			{ name: "Interference", values: { "--worklet-hue": 215, "--ripple-sources": 2, "--ripple-distortion": 0.6, "--ripple-metal": 0.15 } },
+			{
+				name: "Mercury",
+				values: { "--worklet-hue": 280, "--ripple-sources": 1, "--ripple-distortion": 1.4, "--ripple-rings": 80, "--ripple-metal": 1 },
+			},
+			{
+				name: "Resonance",
+				values: { "--worklet-hue": 36, "--ripple-sources": 3, "--ripple-distortion": 0.15, "--ripple-rings": 42, "--ripple-metal": 0.9 },
+			},
 		],
 	},
 	{
 		id: "iridescence",
 		name: "Iridescence",
 		subtitle: "Color with no fixed address.",
-		description: "A spectral foil that catches imaginary light. Fine ridges and shifting color make an ordinary surface feel almost physical.",
+		description:
+			"Thin-film interference, computed per wavelength. Holographic foil splits the light into rainbows; pearl and oil films shift color as they thin and drain.",
 		hint: "Move your pointer to change the light",
 		controls: [
 			control("--iridescence-scale", "Scale", 0.3, 6, 0.1, 2.4),
@@ -269,11 +280,37 @@ export const experiments: Experiment[] = [
 			control("--iridescence-metallic", "Metallic", 0, 1, 0.05, 0.65),
 		],
 		presets: [
-			{ name: "Hologram", values: { "--worklet-hue": 215, "--iridescence-scale": 2.4, "--iridescence-shimmer": 0.65 } },
-			{ name: "Pearl", values: { "--worklet-hue": 310, "--iridescence-scale": 0.7, "--iridescence-shimmer": 1, "--worklet-intensity": 1.5 } },
+			{
+				name: "Hologram",
+				values: {
+					"--worklet-hue": 215,
+					"--iridescence-film": "foil",
+					"--iridescence-scale": 2.4,
+					"--iridescence-shimmer": 0.65,
+					"--iridescence-ridges": 0.55,
+				},
+			},
+			{
+				name: "Pearl",
+				values: {
+					"--worklet-hue": 330,
+					"--iridescence-film": "pearl",
+					"--iridescence-scale": 1.6,
+					"--iridescence-shimmer": 0.8,
+					"--iridescence-ridges": 0.9,
+					"--worklet-intensity": 0.85,
+				},
+			},
 			{
 				name: "Oil slick",
-				values: { "--worklet-hue": 110, "--iridescence-scale": 4.8, "--iridescence-shimmer": 0.5, "--worklet-intensity": 0.8 },
+				values: {
+					"--worklet-hue": 110,
+					"--iridescence-film": "oil",
+					"--iridescence-scale": 4.8,
+					"--iridescence-shimmer": 0.5,
+					"--iridescence-ridges": 0.55,
+					"--worklet-intensity": 1,
+				},
 			},
 		],
 	},
@@ -282,7 +319,7 @@ export const experiments: Experiment[] = [
 		name: "Caustics",
 		subtitle: "Light beneath the surface.",
 		description:
-			"Moving water bends an invisible grid of light into bright, liquid seams. A little swimming-pool sunlight, wherever you need it.",
+			"Sunlight refracted through a moving surface and folded into bright seams, with dispersion fringes and bloom. Swimming-pool light, wherever you need it.",
 		hint: "Refraction bends the light",
 		controls: [
 			control("--caustics-density", "Light cells", 8, 42, 1, 24),
@@ -290,12 +327,36 @@ export const experiments: Experiment[] = [
 			control("--caustics-depth", "Depth", 0, 1, 0.05, 0.7),
 		],
 		presets: [
-			{ name: "Swimming pool", values: { "--worklet-hue": 195, "--caustics-density": 24, "--caustics-refraction": 1 } },
+			{
+				name: "Swimming pool",
+				values: {
+					"--worklet-hue": 195,
+					"--caustics-floor": "tiles",
+					"--caustics-density": 24,
+					"--caustics-refraction": 1,
+					"--caustics-depth": 0.7,
+				},
+			},
 			{
 				name: "Deep water",
-				values: { "--worklet-hue": 220, "--caustics-density": 30, "--caustics-depth": 0.15, "--caustics-refraction": 1.6 },
+				values: {
+					"--worklet-hue": 220,
+					"--caustics-floor": "sand",
+					"--caustics-density": 30,
+					"--caustics-depth": 0.15,
+					"--caustics-refraction": 1.6,
+				},
 			},
-			{ name: "Liquid gold", values: { "--worklet-hue": 40, "--caustics-density": 18, "--caustics-depth": 0.4, "--caustics-refraction": 1.4 } },
+			{
+				name: "Liquid gold",
+				values: {
+					"--worklet-hue": 40,
+					"--caustics-floor": "none",
+					"--caustics-density": 18,
+					"--caustics-depth": 0.4,
+					"--caustics-refraction": 1.4,
+				},
+			},
 		],
 	},
 	{
@@ -322,8 +383,8 @@ export const experiments: Experiment[] = [
 		id: "terrain",
 		name: "Terrain",
 		subtitle: "An imaginary landscape.",
-		description: "A landscape described entirely in light. Layered contours rise, fold, and flow like an animated topographic print.",
-		hint: "Elevation turns a flat field into a landscape",
+		description: "Moonlit ridges fade into haze, mist settles in the valleys, and glowing contours trace every fold of the land.",
+		hint: "Move to swing the light · raise the elevation",
 		controls: [
 			control("--terrain-lines", "Contours", 20, 150, 1, 90),
 			control("--terrain-height", "Elevation", 0, 1.5, 0.05, 0.85),
@@ -333,14 +394,15 @@ export const experiments: Experiment[] = [
 		presets: [
 			{ name: "Contour", values: { "--worklet-hue": 170, "--terrain-height": 0.85 } },
 			{ name: "Dunes", values: { "--worklet-hue": 10, "--terrain-height": 1.1, "--terrain-complexity": 1.1 } },
-			{ name: "Digital alps", values: { "--worklet-hue": 245, "--terrain-height": 1.5, "--terrain-complexity": 3.5, "--terrain-lines": 120 } },
+			{ name: "Digital alps", values: { "--worklet-hue": 245, "--terrain-height": 1.4, "--terrain-complexity": 2.9, "--terrain-lines": 110 } },
 		],
 	},
 	{
 		id: "nebula",
 		name: "Nebula",
 		subtitle: "Somewhere, stars are forming.",
-		description: "Clouds of colored light drift around dark dust lanes. A seeded star field brings a little depth to the night.",
+		description:
+			"Wispy sheets of glowing gas drift behind translucent dust lanes; the densest knots burn at the edges where a young star cluster lights them.",
 		hint: "Dust carves shadows through the clouds",
 		controls: [
 			control("--nebula-clouds", "Density", 40, 240, 1, 160),
@@ -350,7 +412,7 @@ export const experiments: Experiment[] = [
 		],
 		presets: [
 			{ name: "Orion", values: { "--worklet-hue": 220, "--nebula-clouds": 200 } },
-			{ name: "Carina", values: { "--worklet-hue": 5, "--nebula-spread": 1.2, "--nebula-dust": 0.85 } },
+			{ name: "Carina", values: { "--worklet-hue": 5, "--nebula-spread": 1.2, "--nebula-dust": 0.75 } },
 			{ name: "Deep space", values: { "--worklet-hue": 170, "--nebula-spread": 0.65, "--nebula-stars": 230, "--nebula-dust": 0.8 } },
 		],
 	},
@@ -358,7 +420,8 @@ export const experiments: Experiment[] = [
 		id: "metaballs",
 		name: "Metaballs",
 		subtitle: "A softer state of matter.",
-		description: "Liquid forms drift together, merge, and pull apart. Reflected light follows every curve of their glassy surfaces.",
+		description:
+			"Droplets of glass, chrome, or candy drift together, merge, and pull apart in a photo studio. Softboxes slide across every curve; light bends through the glass and pools on the floor.",
 		hint: "Increase merging to join the droplets",
 		controls: [
 			control("--metaballs-count", "Droplets", 2, 9, 1, 5),
@@ -366,16 +429,35 @@ export const experiments: Experiment[] = [
 			control("--metaballs-merging", "Merging", 0.6, 1.6, 0.05, 1),
 		],
 		presets: [
-			{ name: "Liquid glass", values: { "--worklet-hue": 185, "--metaballs-count": 5 } },
-			{ name: "Lava lamp", values: { "--worklet-hue": 330, "--metaballs-count": 4, "--metaballs-size": 1.25, "--metaballs-merging": 1.2 } },
-			{ name: "Quicksilver", values: { "--worklet-hue": 220, "--metaballs-count": 8, "--metaballs-size": 0.75, "--metaballs-merging": 0.7 } },
+			{ name: "Liquid glass", values: { "--worklet-hue": 185, "--metaballs-material": "glass", "--metaballs-count": 5 } },
+			{
+				name: "Lava lamp",
+				values: {
+					"--worklet-hue": 330,
+					"--metaballs-material": "candy",
+					"--metaballs-count": 4,
+					"--metaballs-size": 1.1,
+					"--metaballs-merging": 1.1,
+				},
+			},
+			{
+				name: "Quicksilver",
+				values: {
+					"--worklet-hue": 220,
+					"--metaballs-material": "chrome",
+					"--metaballs-count": 8,
+					"--metaballs-size": 0.75,
+					"--metaballs-merging": 0.7,
+				},
+			},
 		],
 	},
 	{
 		id: "kaleidoscope",
 		name: "Kaleidoscope",
 		subtitle: "Every turn, another world.",
-		description: "Mirrored crystal facets rotate through each other. A shifting aperture of jewel tones and delicate spectral seams.",
+		description:
+			"Backlit glass shards, rods, and beads tumble in the object cell while mirrors fold them into a jewel. Every turn of the tube cuts a new one.",
 		hint: "Change the symmetry to recut the crystal",
 		controls: [
 			control("--kaleidoscope-segments", "Symmetry", 4, 24, 1, 12),
@@ -391,7 +473,7 @@ export const experiments: Experiment[] = [
 			},
 			{
 				name: "Aperture",
-				values: { "--worklet-hue": 260, "--kaleidoscope-segments": 6, "--kaleidoscope-layers": 6, "--kaleidoscope-twist": 2.7 },
+				values: { "--worklet-hue": 260, "--kaleidoscope-segments": 6, "--kaleidoscope-layers": 8, "--kaleidoscope-twist": 2.7 },
 			},
 		],
 	},

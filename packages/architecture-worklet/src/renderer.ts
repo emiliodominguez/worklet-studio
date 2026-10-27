@@ -1,4 +1,4 @@
-import { commonProperties, controls, drawable, number, random } from "../../core/src/index.ts";
+import { blur, commonProperties, controls, drawable, number, random } from "../../core/src/index.ts";
 import type { PaintContext, PaintProperties, PaintSize } from "../../core/src/types.ts";
 import { camera, clipNear, dot, normalize, project, sub, toCamera } from "./geometry.ts";
 import type { Camera, Vec2, Vec3 } from "./geometry.ts";
@@ -32,6 +32,10 @@ interface Light {
 	fog: Vec3;
 	hue: number;
 	phase: number;
+	/** Projected practical-light segments collected for the bloom pass. */
+	bloom: Vec2[][];
+	/** Projected sunbeam sheets collected for the scattering pass. */
+	beams: Vec2[][];
 }
 
 interface Mote {
@@ -249,8 +253,7 @@ function stripLight(ctx: PaintContext, surface: Surface, view: Camera, lighting:
 		b = [center[0], center[1], maxZ];
 	} else return;
 	for (const [width, alpha] of [
-		[12, 0.035],
-		[6, 0.09],
+		[6, 0.07],
 		[2, 0.4],
 		[0.8, 0.95],
 	]) {
@@ -258,6 +261,8 @@ function stripLight(ctx: PaintContext, surface: Surface, view: Camera, lighting:
 		ctx.strokeStyle = `rgba(255,211,144,${alpha * (1 - lighting.day * 0.15)})`;
 		line(ctx, a, b, view);
 	}
+	const segment = clipNear([toCamera(a, view), toCamera(b, view)]);
+	if (segment.length === 2) lighting.bloom.push([project(segment[0], view), project(segment[1], view)]);
 }
 
 /** Interpolate a point on a planar quad. @param points Four corners. @param u Horizontal fraction. @param v Vertical fraction. @returns World point. */
@@ -343,13 +348,14 @@ function drawSurface(ctx: PaintContext, surface: Surface, view: Camera, lighting
 		const top = project(toCamera(surface.world[0], view), view);
 		const bottom = project(toCamera(surface.world[2], view), view);
 		const shaft = ctx.createLinearGradient(...top, ...bottom);
-		const opacity = lighting.day * (1 - explode) * 0.035;
-		shaft.addColorStop(0, `rgba(255,239,193,${opacity * 1.5})`);
+		const opacity = lighting.day * (1 - explode) * 0.06;
+		shaft.addColorStop(0, `rgba(255,239,193,${opacity * 1.6})`);
 		shaft.addColorStop(0.45, `rgba(255,225,161,${opacity})`);
 		shaft.addColorStop(1, "rgba(255,220,160,0)");
 		path(ctx, surface.points);
 		ctx.fillStyle = shaft;
 		ctx.fill();
+		lighting.beams.push(surface.points);
 		return;
 	}
 	if (surface.face.material === "water") {
@@ -378,11 +384,12 @@ function drawSurface(ctx: PaintContext, surface: Surface, view: Camera, lighting
 	ctx.lineWidth = 0.45;
 	ctx.stroke();
 	if (surface.face.material === "light" && surface.area > 0.6) {
-		for (const width of [10, 5, 2]) {
+		for (const width of [5, 2]) {
 			ctx.strokeStyle = `rgba(255,195,101,${(1 - lighting.day * 0.6) * 0.065})`;
 			ctx.lineWidth = width;
 			ctx.stroke();
 		}
+		if (!reflection) lighting.bloom.push(surface.points);
 	}
 	if (!reflection && surface.face.material !== "light") {
 		if (surface.face.material === "concrete") concrete(ctx, surface, view, detail);
@@ -394,6 +401,67 @@ function drawSurface(ctx: PaintContext, surface: Surface, view: Camera, lighting
 		}
 	}
 	if (surface.face.material === "concrete" || surface.face.material === "stone") stripLight(ctx, surface, view, lighting);
+}
+
+/** Photographic finishing: light wrapping around the roof beams, and halation around the practical lights. @param ctx Context. @param size Surface size. @param view Camera. @param lighting Lighting with collected bloom sources. @param explode Separation. */
+function lens(ctx: PaintContext, size: PaintSize, view: Camera, lighting: Light, explode: number): void {
+	const scale = Math.min(size.width, size.height);
+	ctx.save();
+	ctx.globalCompositeOperation = "screen";
+	// The bright roof opening bleeds over the beams that cross it, as an overexposed sky does in a lens.
+	const roof = polygon(
+		[
+			[-17 - explode * 25, 29.15 + explode * 14.4, -22],
+			[17 + explode * 25, 29.15 + explode * 14.4, -22],
+			[17 + explode * 25, 29.15 + explode * 14.4, 70],
+			[-17 - explode * 25, 29.15 + explode * 14.4, 70],
+		],
+		view,
+	);
+	if (roof.length && lighting.day > 0.05) {
+		blur(ctx, scale * 0.035);
+		path(ctx, roof);
+		ctx.fillStyle = `rgba(${120 + lighting.day * 110},${150 + lighting.day * 90},${170 + lighting.day * 60},${lighting.day * 0.2 * lighting.intensity})`;
+		ctx.fill();
+	}
+	// Sunlight scattered by airborne dust: every shaft shares one soft layer.
+	if (lighting.beams.length && explode < 0.95) {
+		blur(ctx, scale * 0.025);
+		ctx.beginPath();
+		for (const shape of lighting.beams) {
+			ctx.moveTo(...shape[0]);
+			for (let i = 1; i < shape.length; i++) ctx.lineTo(...shape[i]);
+			ctx.closePath();
+		}
+		let top = size.height;
+		for (const shape of lighting.beams) for (const point of shape) top = Math.min(top, point[1]);
+		const haze = ctx.createLinearGradient(0, top, 0, size.height);
+		const strength = lighting.day * (1 - explode) * 0.07 * lighting.intensity;
+		haze.addColorStop(0, `rgba(255,236,190,${strength})`);
+		haze.addColorStop(1, "rgba(255,220,160,0)");
+		ctx.fillStyle = haze;
+		ctx.fill();
+	}
+	if (lighting.bloom.length) {
+		const night = 1 - lighting.day * 0.75;
+		ctx.lineCap = "round";
+		ctx.beginPath();
+		for (const shape of lighting.bloom) {
+			ctx.moveTo(...shape[0]);
+			for (let i = 1; i < shape.length; i++) ctx.lineTo(...shape[i]);
+			if (shape.length > 2) ctx.closePath();
+		}
+		for (const [radius, width, alpha] of [
+			[scale * 0.04, scale * 0.016, 0.3],
+			[scale * 0.008, scale * 0.005, 0.45],
+		]) {
+			blur(ctx, radius);
+			ctx.lineWidth = width;
+			ctx.strokeStyle = `rgba(255,190,110,${alpha * night * lighting.intensity})`;
+			ctx.stroke();
+		}
+	}
+	ctx.restore();
 }
 
 /** Draw the entire deterministic architecture image using Paint API paths and gradients. @param ctx Paint context. @param size CSS dimensions. @param properties CSS custom properties. */
@@ -427,6 +495,8 @@ export function paint(ctx: PaintContext, size: PaintSize, properties: PaintPrope
 		fog: [19 + day * 160, 36 + day * 126, 47 + day * 85],
 		hue: shared.hue,
 		phase,
+		bloom: [],
+		beams: [],
 	};
 	ctx.save();
 	const sky = ctx.createLinearGradient(0, 0, 0, size.height);
@@ -477,6 +547,7 @@ export function paint(ctx: PaintContext, size: PaintSize, properties: PaintPrope
 		}
 		ctx.restore();
 	}
+	lens(ctx, size, view, lighting, explode);
 	// A subtle lens falloff anchors the foreground without obscuring the architecture.
 	const vignette = ctx.createRadialGradient(
 		size.width * 0.52,

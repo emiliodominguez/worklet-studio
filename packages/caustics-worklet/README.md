@@ -1,6 +1,6 @@
 # caustics-worklet
 
-Animated underwater caustics: curved, refracted light cells with moving focal highlights.
+Animated pool caustics: sunlight refracted through a moving water surface and folded into bright seams, with dispersion fringes, bloom, sun shafts, and an optional refracted tile or sand floor.
 
 Zero runtime dependencies. One self-contained paint module, a minified alternative, and an optional typed loader.
 
@@ -77,6 +77,7 @@ Optional `attachView(element)` eases pointer lighting or parallax through `--wor
 | `--caustics-density`    | 24      | 8–42; cell frequency                         |
 | `--caustics-refraction` | 1       | 0.1–2; wave distortion                       |
 | `--caustics-depth`      | 0.7     | 0–1; water illumination                      |
+| `--caustics-floor`      | none    | `tiles`, `sand`, or `none` beneath the light |
 
 Numeric values are finite and bounded; missing or malformed numeric values use defaults. Counts are integer-truncated unless stated otherwise. CSS colors should be valid explicit colors; Paint API `currentColor` does not resolve to the element's text color. Invalid colors follow the browser's Canvas style-assignment behavior.
 

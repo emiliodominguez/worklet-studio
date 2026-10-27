@@ -1,6 +1,6 @@
 # nebula-worklet
 
-Animated emission clouds with layered fractal detail, dark dust lanes, and a parallax star field.
+Animated emission nebula: wispy ionized sheets with lit fronts, translucent reddening dust lanes and rim-lit dense knots, a young star cluster with diffraction spikes, and a dust-dimmed parallax star field.
 
 Zero runtime dependencies. One self-contained paint module, a minified alternative, and an optional typed loader.
 

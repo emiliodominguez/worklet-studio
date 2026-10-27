@@ -1,6 +1,6 @@
 # metaballs-worklet
 
-Merging three-dimensional liquid forms with analytic surface normals, studio reflections, and smooth silhouettes.
+Merging three-dimensional liquid droplets in glass, chrome, or candy, lit like a product shot: studio reflections, refraction with dispersion, bloom, floor shadows, caustics, and reflections.
 
 Zero runtime dependencies. One self-contained paint module, a minified alternative, and an optional typed loader.
 
@@ -68,15 +68,16 @@ Optional `attachView(element)` eases pointer lighting or parallax through `--wor
 
 ## CSS inputs
 
-| Property              | Default | Meaning                                      |
-| --------------------- | ------- | -------------------------------------------- |
-| `--worklet-time`      | 0       | One loop is 0–1; animate a registered number |
-| `--worklet-seed`      | 42      | Repeatable variation                         |
-| `--worklet-hue`       | 225     | Base hue in degrees, clamped to -3600–3600   |
-| `--worklet-intensity` | 1       | 0–2 light multiplier                         |
-| `--metaballs-count`   | 5       | 2–9; number of droplets                      |
-| `--metaballs-size`    | 1       | 0.5–1.5; droplet radius multiplier           |
-| `--metaballs-merging` | 1       | 0.6–1.6; surface attraction                  |
+| Property               | Default | Meaning                                      |
+| ---------------------- | ------- | -------------------------------------------- |
+| `--worklet-time`       | 0       | One loop is 0–1; animate a registered number |
+| `--worklet-seed`       | 42      | Repeatable variation                         |
+| `--worklet-hue`        | 225     | Base hue in degrees, clamped to -3600–3600   |
+| `--worklet-intensity`  | 1       | 0–2 light multiplier                         |
+| `--metaballs-count`    | 5       | 2–9; number of droplets                      |
+| `--metaballs-size`     | 1       | 0.5–1.5; droplet radius multiplier           |
+| `--metaballs-merging`  | 1       | 0.6–1.6; surface attraction                  |
+| `--metaballs-material` | glass   | `glass`, `chrome`, or `candy`                |
 
 Numeric values are finite and bounded; missing or malformed numeric values use defaults. Counts are integer-truncated unless stated otherwise. CSS colors should be valid explicit colors; Paint API `currentColor` does not resolve to the element's text color. Invalid colors follow the browser's Canvas style-assignment behavior.
 

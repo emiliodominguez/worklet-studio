@@ -1,6 +1,6 @@
 # iridescence-worklet
 
-Angle-shifting spectral foil and pearlescent contour surfaces.
+Thin-film interference computed per wavelength: holographic foil with diffraction rainbows, mother-of-pearl, or an oil slick on dark water.
 
 Zero runtime dependencies. One self-contained paint module, a minified alternative, and an optional typed loader.
 
@@ -80,6 +80,7 @@ Optional `attachView(element)` eases pointer lighting or parallax through `--wor
 | `--iridescence-position-x` | 0.5     | 0–1 normalized light position                |
 | `--iridescence-position-y` | 0.5     | 0–1 normalized light position                |
 | `--iridescence-metallic`   | 0.65    | 0–1; reflective highlight strength           |
+| `--iridescence-film`       | foil    | `foil`, `pearl`, or `oil` film and substrate |
 
 Numeric values are finite and bounded; missing or malformed numeric values use defaults. Counts are integer-truncated unless stated otherwise. CSS colors should be valid explicit colors; Paint API `currentColor` does not resolve to the element's text color. Invalid colors follow the browser's Canvas style-assignment behavior.
 

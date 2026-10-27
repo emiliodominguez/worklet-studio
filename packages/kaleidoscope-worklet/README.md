@@ -1,6 +1,6 @@
 # kaleidoscope-worklet
 
-Animated mirrored crystal facets with rotating layers, spectral seams, and traveling highlights.
+A backlit kaleidoscope: tumbling translucent glass shards, rods, and beads mirrored into wedges inside a dark tube, with mirror seams, a brushed rim, and bloomed star glints.
 
 Zero runtime dependencies. One self-contained paint module, a minified alternative, and an optional typed loader.
 
@@ -74,10 +74,10 @@ Optional `attachView(element)` eases pointer lighting or parallax through `--wor
 | `--worklet-seed`          | 42      | Repeatable variation                         |
 | `--worklet-hue`           | 225     | Base hue in degrees, clamped to -3600–3600   |
 | `--worklet-intensity`     | 1       | 0–2 light multiplier                         |
-| `--kaleidoscope-segments` | 12      | 4–24; rotational symmetry                    |
-| `--kaleidoscope-layers`   | 10      | 3–18; radial facet layers                    |
-| `--kaleidoscope-twist`    | 1.2     | 0–3; layer rotation                          |
-| `--kaleidoscope-radius`   | 1       | 0.4–1.4; crystal scale                       |
+| `--kaleidoscope-segments` | 12      | 4–24; mirror wedges, rounded up to even      |
+| `--kaleidoscope-layers`   | 10      | 3–18; density of glass in the object cell    |
+| `--kaleidoscope-twist`    | 1.2     | 0–3; tumbling and swirl of the glass         |
+| `--kaleidoscope-radius`   | 1       | 0.4–1.4; aperture scale                      |
 
 Numeric values are finite and bounded; missing or malformed numeric values use defaults. Counts are integer-truncated unless stated otherwise. CSS colors should be valid explicit colors; Paint API `currentColor` does not resolve to the element's text color. Invalid colors follow the browser's Canvas style-assignment behavior.
 

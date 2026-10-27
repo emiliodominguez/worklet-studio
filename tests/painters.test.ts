@@ -27,6 +27,8 @@ function render(painter: Painter, values: Record<string, string | number> = {}, 
 		"moveTo",
 		"lineTo",
 		"quadraticCurveTo",
+		"bezierCurveTo",
+		"scale",
 		"closePath",
 		"arc",
 		"ellipse",
@@ -40,8 +42,22 @@ function render(painter: Painter, values: Record<string, string | number> = {}, 
 		"rotate",
 		"createLinearGradient",
 		"createRadialGradient",
+		"createConicGradient",
 	]);
-	const attributes = new Set(["fillStyle", "strokeStyle", "globalAlpha", "globalCompositeOperation", "lineWidth", "lineCap", "lineJoin"]);
+	const attributes = new Set([
+		"fillStyle",
+		"strokeStyle",
+		"globalAlpha",
+		"globalCompositeOperation",
+		"lineWidth",
+		"lineCap",
+		"lineJoin",
+		"filter",
+		"shadowBlur",
+		"shadowColor",
+		"shadowOffsetX",
+		"shadowOffsetY",
+	]);
 	const ctx = new Proxy(
 		{},
 		{
@@ -65,6 +81,7 @@ function render(painter: Painter, values: Record<string, string | number> = {}, 
 				assert.ok(attributes.has(name), `Unsupported Paint attribute: ${name}`);
 				if (typeof value === "number") assert.ok(Number.isFinite(value));
 				if (name === "lineWidth") assert.ok(value > 0, "Canvas ignores non-positive line widths");
+				if (name === "filter") assert.match(String(value), /^(none|blur\([\d.]+px\))$/, "Only finite blur filters are supported");
 				commands.push([name, typeof value === "object" ? "gradient" : value]);
 				return true;
 			},

@@ -60,6 +60,11 @@ export function glow(ctx: PaintContext, x: number, y: number, radius: number, co
 	ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
 }
 
+/** Set a bounded Gaussian blur for the following draws. Callers own the surrounding save/restore. @param ctx Paint context. @param radius Blur radius in CSS pixels; non-positive radii clear the filter. */
+export function blur(ctx: PaintContext, radius: number): void {
+	ctx.filter = radius > 0.05 && Number.isFinite(radius) ? `blur(${Math.min(radius, 200).toFixed(2)}px)` : "none";
+}
+
 /** Accept the original cursor's RGB triplets alongside modern CSS colors. @param value CSS color or RGB triplet. @returns A CSS color. */
 export function color(value: string): string {
 	return /^\s*[\d.]+\s*,\s*[\d.]+\s*,\s*[\d.]+\s*$/.test(value) ? `rgb(${value})` : value;

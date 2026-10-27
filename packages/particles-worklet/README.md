@@ -1,6 +1,6 @@
 # particles-worklet
 
-Seeded particle constellations with glowing, distance-faded connections.
+Seeded particle constellations with depth of field, twinkle, diffraction spikes, and glowing, distance-faded connections; or a barred spiral galaxy with a bulge, dust lanes, and star-forming knots.
 
 Zero runtime dependencies. One self-contained paint module, a minified alternative, and an optional typed loader.
 
@@ -68,20 +68,21 @@ Optional `attachView(element)` eases pointer lighting or parallax through `--wor
 
 ## CSS inputs
 
-| Property                      | Default | Meaning                                      |
-| ----------------------------- | ------- | -------------------------------------------- |
-| `--worklet-time`              | 0       | One loop is 0–1; animate a registered number |
-| `--worklet-seed`              | 42      | Repeatable variation                         |
-| `--worklet-hue`               | 225     | Base hue in degrees, clamped to -3600–3600   |
-| `--worklet-intensity`         | 1       | 0–2 light multiplier                         |
-| `--particles-count`           | 130     | 0–800 particles                              |
-| `--particles-size-min`        | 0.6     | 0–30 CSS px                                  |
-| `--particles-size-max`        | 2.4     | Minimum size through 40 CSS px               |
-| `--particles-lines-threshold` | 115     | 0–400 CSS px; 0 disables connections         |
-| `--particles-background`      | #111    | Any CSS color, including transparent         |
-| `--particles-glow`            | 1       | 0–2; 0 disables bloom                        |
-| `--particles-drift`           | 35      | 0–200 CSS px                                 |
-| `--particles-layout`          | field   | field or galaxy; seeded three-arm spiral     |
+| Property                      | Default | Meaning                                           |
+| ----------------------------- | ------- | ------------------------------------------------- |
+| `--worklet-time`              | 0       | One loop is 0–1; animate a registered number      |
+| `--worklet-seed`              | 42      | Repeatable variation                              |
+| `--worklet-hue`               | 225     | Base hue in degrees, clamped to -3600–3600        |
+| `--worklet-intensity`         | 1       | 0–2 light multiplier                              |
+| `--particles-count`           | 130     | 0–800 particles                                   |
+| `--particles-size-min`        | 0.6     | 0–30 CSS px                                       |
+| `--particles-size-max`        | 2.4     | Minimum size through 40 CSS px                    |
+| `--particles-lines-threshold` | 115     | 0–400 CSS px; 0 disables connections              |
+| `--particles-background`      | #111    | Any CSS color, including transparent              |
+| `--particles-glow`            | 1       | 0–2; 0 disables bloom                             |
+| `--particles-drift`           | 35      | 0–200 CSS px                                      |
+| `--particles-layout`          | field   | field or galaxy; seeded barred spiral             |
+| `--particles-focus`           | 0.62    | 0–1; depth in focus; nearer stars open into bokeh |
 
 Numeric values are finite and bounded; missing or malformed numeric values use defaults. Counts are integer-truncated unless stated otherwise. CSS colors should be valid explicit colors; Paint API `currentColor` does not resolve to the element's text color. Invalid colors follow the browser's Canvas style-assignment behavior.
 

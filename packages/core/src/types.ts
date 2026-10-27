@@ -9,13 +9,21 @@ export interface PaintSize {
 	height: number;
 }
 
-/** Only APIs shared by Canvas 2D and PaintRenderingContext2D are used. */
+/** Only APIs shared by Canvas 2D and PaintRenderingContext2D are used. Chrome's paint context also honors `filter` and shadows, which provide real Gaussian blur. */
 export type PaintContext = Pick<
 	CanvasRenderingContext2D,
 	| "beginPath"
 	| "moveTo"
 	| "lineTo"
 	| "quadraticCurveTo"
+	| "bezierCurveTo"
+	| "scale"
+	| "createConicGradient"
+	| "filter"
+	| "shadowBlur"
+	| "shadowColor"
+	| "shadowOffsetX"
+	| "shadowOffsetY"
 	| "closePath"
 	| "arc"
 	| "ellipse"

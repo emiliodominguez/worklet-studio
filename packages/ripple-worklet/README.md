@@ -1,6 +1,6 @@
 # ripple-worklet
 
-Liquid interference rings and luminous wavefronts.
+A liquid surface of spreading, interfering wavefronts that reflects a dark photo studio, from clear water to liquid chrome or molten gold.
 
 Zero runtime dependencies. One self-contained paint module, a minified alternative, and an optional typed loader.
 
@@ -79,6 +79,7 @@ Optional `attachView(element)` eases pointer lighting or parallax through `--wor
 | `--ripple-sources`    | 2              | 1–4                                          |
 | `--ripple-position-x` | Element center | Local CSS px                                 |
 | `--ripple-position-y` | Element center | Local CSS px                                 |
+| `--ripple-metal`      | 0.15           | 0–1; clear water to liquid metal             |
 
 Numeric values are finite and bounded; missing or malformed numeric values use defaults. Counts are integer-truncated unless stated otherwise. CSS colors should be valid explicit colors; Paint API `currentColor` does not resolve to the element's text color. Invalid colors follow the browser's Canvas style-assignment behavior.
 
