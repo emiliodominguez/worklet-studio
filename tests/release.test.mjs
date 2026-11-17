@@ -3,7 +3,7 @@ import { test } from "node:test";
 import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { parseOptions, discoverPackages, createPlan, executePlan, registry } from "../scripts/release.mjs";
+import { parseOptions, discoverPackages, createPlan, executePlan, loadPermissions, registry } from "../scripts/release.mjs";
 
 const packages = [
 	{ name: "alpha-worklet", version: "1.1.0", integrity: "sha512-a", archive: "/tmp/alpha.tgz" },
@@ -147,4 +147,24 @@ test("publish stops on the first failure and records partial progress for retry"
 	assert.equal(calls.length, 2);
 	assert.ok(!calls[0].includes("--dry-run"));
 	assert.deepEqual(snapshots.at(-1), ["published", "failed", undefined]);
+});
+
+test("permission listing degrades to the maintainer check only for forbidden tokens", function permissions() {
+	assert.deepEqual(
+		loadPermissions(function forbidden() {
+			throw new Error("npm access failed: 403 Forbidden - You may not perform that action with these credentials.");
+		}),
+		{},
+	);
+	assert.throws(function offline() {
+		loadPermissions(function unavailable() {
+			throw new Error("npm access failed: ECONNRESET");
+		});
+	}, /ECONNRESET/);
+	assert.deepEqual(
+		loadPermissions(function listed() {
+			return { "alpha-worklet": "read-write" };
+		}),
+		{ "alpha-worklet": "read-write" },
+	);
 });

@@ -125,6 +125,22 @@ export async function executePlan(plan, { publish, tag, run, save = async functi
 	return completed;
 }
 
+/**
+ * Read collaborator permissions, which only matter for packages the identity does not maintain.
+ * Granular and automation tokens are refused this listing (403); fall back to the maintainer check, which still blocks unowned packages.
+ * @param list Reader for `npm access list packages`.
+ * @returns Package-to-permission map, empty when the token cannot list access.
+ */
+export function loadPermissions(list) {
+	try {
+		return list() || {};
+	} catch (error) {
+		if (!/\b403\b|E403|Forbidden/.test(error.message)) throw error;
+		console.warn("This token cannot list package access; relying on npm maintainers for the ownership check.");
+		return {};
+	}
+}
+
 /** Pack, preflight, and release the repository's public worklets. @param args Command-line arguments. */
 export async function main(args) {
 	const options = parseOptions(args);
@@ -158,7 +174,9 @@ export async function main(args) {
 	if (options.publish) {
 		identity = npm(["whoami", "--json", "--registry", registry]);
 		if (typeof identity !== "string" || !identity) throw new Error("Run npm login before publishing.");
-		permissions = npm(["access", "list", "packages", identity, "--json", "--registry", registry]);
+		permissions = loadPermissions(function listAccess() {
+			return npm(["access", "list", "packages", identity, "--json", "--registry", registry]);
+		});
 		console.log(`Publishing as ${identity} with tag ${options.tag}.`);
 	}
 	const plan = await createPlan(packages, {
