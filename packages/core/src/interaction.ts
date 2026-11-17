@@ -1,11 +1,38 @@
-import { inline, settled, spring, stepSpring } from "./motion.ts";
+import { elapsed, frequency, inline, rest, settled, spring, stepSpring, unreachable } from "./motion.ts";
+import type { Frequency, Point } from "./motion.ts";
 
-/** Angular frequency while following the pointer: responsive, with no kink when motion starts or stops. */
-const FOLLOW_FREQUENCY = 9;
-/** Angular frequency of the drift back to center after the pointer leaves: slow enough to read as the scene relaxing. */
-const RETURN_FREQUENCY = 2.4;
+/** Stiffness while following the pointer: responsive, with no kink when motion starts or stops. */
+const FOLLOW_FREQUENCY = frequency(9);
+/** Stiffness of the drift back to center after the pointer leaves: slow enough to read as the scene relaxing. */
+const RETURN_FREQUENCY = frequency(2.4);
 /** Pause before relaxing, so brief exits to nearby controls do not move the scene. */
 const RETURN_DELAY = 900;
+/** The resting, centered view. */
+const CENTER: Point = { x: 0.5, y: 0.5 };
+
+/** Where the view is heading: the pointer, or a slow relax back to center. */
+type Goal = { readonly kind: "follow"; readonly point: Point } | { readonly kind: "relax" };
+
+/**
+ * Resolve a goal into its spring target and stiffness.
+ * @param goal Current goal.
+ * @returns Target point and the frequency to reach it with.
+ */
+function aim(goal: Goal): { point: Point; stiffness: Frequency } {
+	switch (goal.kind) {
+		case "follow":
+			return { point: goal.point, stiffness: FOLLOW_FREQUENCY };
+		case "relax":
+			return { point: CENTER, stiffness: RETURN_FREQUENCY };
+		default:
+			return unreachable(goal);
+	}
+}
+
+/** Keep a coordinate inside the normalized surface. @param value Coordinate. @returns Bounded coordinate. */
+function clamp(value: number): number {
+	return Math.max(0, Math.min(1, value));
+}
 
 /** Add spring-eased lighting and parallax inputs. Leaves scrolling intact and disables decorative tracking under reduced motion. Continues from values a previous helper left inline. @param element Painted element. @returns Idempotent cleanup restoring previous inline properties. */
 export function attachView(element: HTMLElement): () => void {
@@ -13,22 +40,15 @@ export function attachView(element: HTMLElement): () => void {
 	if (!view) return function noop() {};
 	const names = ["--worklet-pointer-x", "--worklet-pointer-y"];
 	const previous = names.map(function read(name) {
-		return { value: element.style.getPropertyValue(name), priority: element.style.getPropertyPriority(name) };
+		return { name, value: element.style.getPropertyValue(name), priority: element.style.getPropertyPriority(name) };
 	});
 	const reduced = view.matchMedia("(prefers-reduced-motion: reduce)");
-	const x = spring(clamp(inline(element, names[0]) ?? 0.5)),
-		y = spring(clamp(inline(element, names[1]) ?? 0.5));
-	let targetX = x.value,
-		targetY = y.value,
-		frequency = FOLLOW_FREQUENCY,
-		frame = 0,
-		timer = 0,
-		lastTime = 0,
+	const x = spring(clamp(inline(element, names[0]) ?? CENTER.x)),
+		y = spring(clamp(inline(element, names[1]) ?? CENTER.y));
+	let goal: Goal = { kind: "follow", point: { x: x.value, y: y.value } };
+	let frame = 0,
 		disposed = false;
-	/** Keep a coordinate inside the normalized surface. @param value Coordinate. @returns Bounded coordinate. */
-	function clamp(value: number): number {
-		return Math.max(0, Math.min(1, value));
-	}
+	let timer: number | undefined, lastTime: number | undefined;
 	/** Schedule only while the document is visible. */
 	function schedule(): void {
 		if (!frame && !disposed && !element.ownerDocument.hidden) frame = view!.requestAnimationFrame(update);
@@ -37,31 +57,31 @@ export function attachView(element: HTMLElement): () => void {
 	function update(now: number): void {
 		frame = 0;
 		if (disposed || element.ownerDocument.hidden) return;
-		const seconds = (lastTime ? Math.min(64, now - lastTime) : 16.67) / 1000;
+		const seconds = elapsed(now, lastTime);
 		lastTime = now;
+		if (reduced.matches) goal = { kind: "relax" };
+		const { point, stiffness } = aim(goal);
 		if (reduced.matches) {
-			x.value = targetX = 0.5;
-			y.value = targetY = 0.5;
-			x.velocity = y.velocity = 0;
+			rest(x, point.x);
+			rest(y, point.y);
 		} else {
-			stepSpring(x, targetX, frequency, seconds);
-			stepSpring(y, targetY, frequency, seconds);
+			stepSpring(x, point.x, stiffness, seconds);
+			stepSpring(y, point.y, stiffness, seconds);
 		}
-		const rest = settled(x, targetX, 0.0005) && settled(y, targetY, 0.0005);
-		if (rest) {
-			x.value = targetX;
-			y.value = targetY;
-			x.velocity = y.velocity = 0;
-			lastTime = 0;
+		const done = settled(x, point.x, 0.0005) && settled(y, point.y, 0.0005);
+		if (done) {
+			rest(x, point.x);
+			rest(y, point.y);
+			lastTime = undefined;
 		}
 		element.style.setProperty(names[0], x.value.toFixed(4));
 		element.style.setProperty(names[1], y.value.toFixed(4));
-		if (!rest) schedule();
+		if (!done) schedule();
 	}
 	/** Cancel a pending return to center. */
 	function hold(): void {
-		if (timer) view!.clearTimeout(timer);
-		timer = 0;
+		if (timer !== undefined) view!.clearTimeout(timer);
+		timer = undefined;
 	}
 	/** Accept normalized pointer coordinates without capturing touch gestures. @param event Pointer movement. */
 	function move(event: PointerEvent): void {
@@ -69,34 +89,29 @@ export function attachView(element: HTMLElement): () => void {
 		const rect = element.getBoundingClientRect();
 		if (!rect.width || !rect.height) return;
 		hold();
-		frequency = FOLLOW_FREQUENCY;
-		targetX = clamp((event.clientX - rect.left) / rect.width);
-		targetY = clamp((event.clientY - rect.top) / rect.height);
+		goal = { kind: "follow", point: { x: clamp((event.clientX - rect.left) / rect.width), y: clamp((event.clientY - rect.top) / rect.height) } };
 		schedule();
 	}
 	/** Drift back to the centered view, softly and after a short pause. */
 	function leave(): void {
 		hold();
 		timer = view!.setTimeout(function relax() {
-			timer = 0;
-			frequency = RETURN_FREQUENCY;
-			targetX = 0.5;
-			targetY = 0.5;
+			timer = undefined;
+			goal = { kind: "relax" };
 			schedule();
 		}, RETURN_DELAY);
 	}
 	/** Center immediately when reduced motion is requested. */
 	function preference(): void {
 		hold();
-		targetX = 0.5;
-		targetY = 0.5;
+		goal = { kind: "relax" };
 		schedule();
 	}
 	/** Suspend work while the document is hidden and resume from the same state. */
 	function visibility(): void {
 		if (frame) view!.cancelAnimationFrame(frame);
 		frame = 0;
-		lastTime = 0;
+		lastTime = undefined;
 		if (!element.ownerDocument.hidden) schedule();
 	}
 	element.addEventListener("pointermove", move, { passive: true });
@@ -104,7 +119,7 @@ export function attachView(element: HTMLElement): () => void {
 	element.addEventListener("pointercancel", leave);
 	reduced.addEventListener("change", preference);
 	element.ownerDocument.addEventListener("visibilitychange", visibility);
-	if (reduced.matches && (x.value !== 0.5 || y.value !== 0.5)) schedule();
+	if (reduced.matches && (x.value !== CENTER.x || y.value !== CENTER.y)) schedule();
 	return function cleanup(): void {
 		if (disposed) return;
 		disposed = true;
@@ -115,9 +130,9 @@ export function attachView(element: HTMLElement): () => void {
 		element.removeEventListener("pointercancel", leave);
 		reduced.removeEventListener("change", preference);
 		element.ownerDocument.removeEventListener("visibilitychange", visibility);
-		for (let i = 0; i < names.length; i++) {
-			if (previous[i].value) element.style.setProperty(names[i], previous[i].value, previous[i].priority);
-			else element.style.removeProperty(names[i]);
+		for (const { name, value, priority } of previous) {
+			if (value) element.style.setProperty(name, value, priority);
+			else element.style.removeProperty(name);
 		}
 	};
 }

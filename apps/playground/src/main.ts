@@ -5,7 +5,8 @@ import type { Control } from "./catalog.ts";
 import { attachPointer } from "cursor-worklet/register";
 import { attachView } from "aurora-worklet/register";
 import { attachArchitecture } from "architecture-worklet/register";
-import { settled, spring, stepSpring } from "../../../packages/core/src/motion.ts";
+import { elapsed, frequency, rest, settled, spring, stepSpring, unreachable } from "../../../packages/core/src/motion.ts";
+import type { Point } from "../../../packages/core/src/motion.ts";
 import architectureUrl from "architecture-worklet/worklet.js?url";
 import auroraUrl from "aurora-worklet/worklet.js?url";
 import particlesUrl from "particles-worklet/worklet.js?url";
@@ -44,17 +45,19 @@ let selected = 0,
 	ready = false;
 let values: Record<string, string | number> = {};
 let detachPointer: (() => void) | undefined;
-let pointerFrame = 0,
-	pointerTime = 0,
-	pointerTargetX = 0.5,
-	pointerTargetY = 0.5;
+let pointerFrame = 0;
+let pointerTime: number | undefined;
+/** Normalized pointer the light or wave source eases toward. */
+let pointerTarget: Point = { x: 0.5, y: 0.5 };
 let surfaceVisible = true;
 const pointerX = spring(0.5),
 	pointerY = spring(0.5);
 /** Interaction properties carried across preset changes within one effect, so the scene does not jump back to its resting pose. */
 const continuity = ["--worklet-pointer-x", "--worklet-pointer-y", "--cursor-position-x", "--cursor-position-y", "--cursor-heading"];
-/** Angular frequency of the spring that eases pointer-driven light and wave sources. */
-const POINTER_FREQUENCY = 7;
+/** Stiffness of the spring that eases pointer-driven light and wave sources. */
+const POINTER_FREQUENCY = frequency(7);
+/** Effects whose painters read a pointer position from their own CSS inputs. */
+type PointerEffect = "ripple" | "iridescence";
 
 /** Resolve a required interface element. @param selector Element selector. @returns The matching element. */
 function element<T extends HTMLElement = HTMLElement>(selector: string): T {
@@ -166,16 +169,27 @@ function applyValues(): void {
 	updateRecipe();
 }
 
-/** Effects whose painters read a pointer position from their own CSS inputs. @returns The effect id, or undefined. */
-function pointerEffect(): string | undefined {
+/** Parse the selected effect's id at the catalog edge. @returns The pointer-driven effect, or undefined when the selected effect has none. */
+function pointerEffect(): PointerEffect | undefined {
 	const id = experiments[selected].id;
 	return id === "ripple" || id === "iridescence" ? id : undefined;
 }
 
-/** Publish the eased pointer in the units each painter expects: CSS pixels for ripple, normalized for iridescence. @param id Effect id. */
-function writePointer(id: string): void {
-	surface.style.setProperty(`--${id}-position-x`, String(id === "ripple" ? pointerX.value * surface.offsetWidth : pointerX.value));
-	surface.style.setProperty(`--${id}-position-y`, String(id === "ripple" ? pointerY.value * surface.offsetHeight : pointerY.value));
+/** Publish the eased pointer in the units each painter expects. @param effect Pointer-driven effect. */
+function writePointer(effect: PointerEffect): void {
+	let position: Point;
+	switch (effect) {
+		case "ripple":
+			position = { x: pointerX.value * surface.offsetWidth, y: pointerY.value * surface.offsetHeight };
+			break;
+		case "iridescence":
+			position = { x: pointerX.value, y: pointerY.value };
+			break;
+		default:
+			return unreachable(effect);
+	}
+	surface.style.setProperty(`--${effect}-position-x`, String(position.x));
+	surface.style.setProperty(`--${effect}-position-y`, String(position.y));
 }
 
 /** Advance the pointer springs and stop once they rest. @param now Frame timestamp. */
@@ -183,19 +197,23 @@ function stepPointer(now: number): void {
 	pointerFrame = 0;
 	const id = pointerEffect();
 	if (!ready || !id) return;
-	const seconds = (pointerTime ? Math.min(64, now - pointerTime) : 16.67) / 1000;
+	const seconds = elapsed(now, pointerTime);
 	pointerTime = now;
-	stepSpring(pointerX, pointerTargetX, reducedMotion.matches ? 1e4 : POINTER_FREQUENCY, seconds);
-	stepSpring(pointerY, pointerTargetY, reducedMotion.matches ? 1e4 : POINTER_FREQUENCY, seconds);
-	const rest = settled(pointerX, pointerTargetX, 0.0005) && settled(pointerY, pointerTargetY, 0.0005);
-	if (rest) {
-		pointerX.value = pointerTargetX;
-		pointerY.value = pointerTargetY;
-		pointerX.velocity = pointerY.velocity = 0;
-		pointerTime = 0;
+	if (reducedMotion.matches) {
+		rest(pointerX, pointerTarget.x);
+		rest(pointerY, pointerTarget.y);
+	} else {
+		stepSpring(pointerX, pointerTarget.x, POINTER_FREQUENCY, seconds);
+		stepSpring(pointerY, pointerTarget.y, POINTER_FREQUENCY, seconds);
+	}
+	const done = settled(pointerX, pointerTarget.x, 0.0005) && settled(pointerY, pointerTarget.y, 0.0005);
+	if (done) {
+		rest(pointerX, pointerTarget.x);
+		rest(pointerY, pointerTarget.y);
+		pointerTime = undefined;
 	}
 	writePointer(id);
-	if (!rest) pointerFrame = requestAnimationFrame(stepPointer);
+	if (!done) pointerFrame = requestAnimationFrame(stepPointer);
 }
 
 /** Render a labeled range input. @param control Control metadata. @returns Control markup. */
@@ -223,19 +241,19 @@ function renderEffect(): void {
 	const effect = experiments[selected];
 	const same = surface.dataset.effect === effect.id;
 	const carried = continuity.map(function read(name) {
-		return surface.style.getPropertyValue(name);
+		return { name, value: surface.style.getPropertyValue(name) };
 	});
 	detachPointer?.();
 	if (pointerFrame) cancelAnimationFrame(pointerFrame);
 	pointerFrame = 0;
-	pointerTime = 0;
+	pointerTime = undefined;
 	surface.removeAttribute("style");
 	if (same) {
-		for (let i = 0; i < continuity.length; i++) if (carried[i]) surface.style.setProperty(continuity[i], carried[i]);
+		for (const { name, value } of carried) if (value) surface.style.setProperty(name, value);
 	} else {
-		pointerX.value = pointerTargetX = 0.5;
-		pointerY.value = pointerTargetY = 0.5;
-		pointerX.velocity = pointerY.velocity = 0;
+		pointerTarget = { x: 0.5, y: 0.5 };
+		rest(pointerX, pointerTarget.x);
+		rest(pointerY, pointerTarget.y);
 	}
 	if (ready) surface.style.backgroundImage = `paint(${effect.id})`;
 	surface.setAttribute("aria-label", `${effect.name}: ${effect.subtitle}`);
@@ -409,8 +427,10 @@ surface.addEventListener(
 		if (!ready || !pointerEffect()) return;
 		const rect = surface.getBoundingClientRect();
 		if (!rect.width || !rect.height) return;
-		pointerTargetX = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
-		pointerTargetY = Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height));
+		pointerTarget = {
+			x: Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width)),
+			y: Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height)),
+		};
 		if (!pointerFrame) pointerFrame = requestAnimationFrame(stepPointer);
 	},
 	{ passive: true },

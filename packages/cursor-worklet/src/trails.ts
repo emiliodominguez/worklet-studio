@@ -16,8 +16,23 @@ export function parseTrail(value: string): TrailPoint[] {
 	return points;
 }
 
-/** Redistribute a polyline into evenly spaced points along its length, so width and fade profiles follow the visible trail rather than how densely it was sampled. @param points Polyline, head first. @param count Number of output points, at least 2. @returns Exactly `count` points; a degenerate polyline repeats its head. */
-export function resampleTrail(points: TrailPoint[], count: number): TrailPoint[] {
+/** A polyline with at least one point. */
+export type NonEmptyTrail = readonly [TrailPoint, ...TrailPoint[]];
+
+/**
+ * Prefix a trail with a head when it is empty, so later stages always have a point to anchor to.
+ * @param points Decoded trail, possibly empty.
+ * @param head Position used when the trail is empty.
+ * @returns A trail with at least one point.
+ */
+export function anchorTrail(points: TrailPoint[], head: TrailPoint): NonEmptyTrail {
+	const [first, ...rest] = points;
+	return first ? [first, ...rest] : [head];
+}
+
+/** Redistribute a polyline into evenly spaced points along its length, so width and fade profiles follow the visible trail rather than how densely it was sampled. @param points Polyline, head first. @param count Number of output points, an integer of at least 2. @returns Exactly `count` points; a degenerate polyline repeats its head. @throws RangeError when count is below 2, which has no spacing to distribute. */
+export function resampleTrail(points: NonEmptyTrail, count: number): TrailPoint[] {
+	if (!Number.isInteger(count) || count < 2) throw new RangeError(`A resampled trail needs at least 2 points: ${count}`);
 	const distances = [0];
 	for (let i = 1; i < points.length; i++)
 		distances.push(distances[i - 1] + Math.hypot(points[i].x - points[i - 1].x, points[i].y - points[i - 1].y));

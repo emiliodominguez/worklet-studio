@@ -7,6 +7,7 @@ function harness(reduced = false) {
 	const values = new Map<string, string>();
 	const priorities = new Map<string, string>();
 	const frames = new Map<number, FrameRequestCallback>();
+	const timers = new Map<number, () => void>();
 	let identifier = 0,
 		now = 0;
 	const media = Object.assign(new EventTarget(), { matches: reduced });
@@ -23,6 +24,13 @@ function harness(reduced = false) {
 		},
 		cancelAnimationFrame(id: number) {
 			frames.delete(id);
+		},
+		setTimeout(callback: () => void) {
+			timers.set(++identifier, callback);
+			return identifier;
+		},
+		clearTimeout(id: number) {
+			timers.delete(id);
 		},
 	});
 	const document = Object.assign(new EventTarget(), { defaultView: view, hidden: false });
@@ -65,7 +73,13 @@ function harness(reduced = false) {
 		target.dispatchEvent(event);
 		return event;
 	}
-	return { element, view, document, values, settle, dispatch, frames };
+	/** Fire every pending timer. */
+	function elapse() {
+		const pending = [...timers.values()];
+		timers.clear();
+		for (const callback of pending) callback();
+	}
+	return { element, view, document, values, settle, dispatch, frames, timers, elapse };
 }
 
 test("architecture: releasing unrelated UI input does not overwrite externally selected separation", function unrelatedRelease() {
@@ -118,4 +132,27 @@ test("architecture: reduced motion keeps the view still while intentional naviga
 	h.settle();
 	assert.equal(h.values.get("--architecture-explode"), "0.0000");
 	cleanup();
+});
+
+test("architecture: leaving holds the camera, reassembles, then relaxes the view to center", function leave() {
+	const h = harness();
+	const cleanup = attachArchitecture(h.element as unknown as HTMLElement);
+	h.dispatch(h.element, "pointerdown", { isPrimary: true, button: 0, pointerId: 1, pointerType: "mouse", clientX: 900, clientY: 200 });
+	h.settle();
+	assert.equal(h.values.get("--worklet-pointer-x"), "0.9000");
+	h.dispatch(h.element, "pointerleave");
+	h.settle();
+	assert.equal(h.values.get("--architecture-explode"), "0.0000", "Leaving releases the separation at once");
+	assert.equal(h.values.get("--worklet-pointer-x"), "0.9000", "The view holds before relaxing");
+	assert.equal(h.timers.size, 1);
+	h.dispatch(h.element, "pointermove", { clientX: 900, clientY: 200 });
+	assert.equal(h.timers.size, 0, "Returning cancels the pending relax");
+	h.dispatch(h.element, "pointerleave");
+	h.elapse();
+	h.settle();
+	assert.equal(h.values.get("--worklet-pointer-x"), "0.5000");
+	h.dispatch(h.element, "pointerleave");
+	assert.equal(h.timers.size, 1);
+	cleanup();
+	assert.equal(h.timers.size, 0, "Cleanup cancels a pending relax");
 });

@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { experiments } from "../apps/playground/src/catalog.ts";
-import { ease, settled, spring, stepSpring } from "../packages/core/src/motion.ts";
+import { ease, elapsed, frequency, inlinePoint, settled, spring, stepSpring } from "../packages/core/src/motion.ts";
 import { attachView } from "../packages/core/src/interaction.ts";
 import { attachPointer } from "../packages/cursor-worklet/src/register.ts";
 import { paint as cursor } from "../packages/cursor-worklet/src/renderer.ts";
-import { resampleTrail } from "../packages/cursor-worklet/src/trails.ts";
+import { anchorTrail, resampleTrail } from "../packages/cursor-worklet/src/trails.ts";
 import type { PaintContext, Painter } from "../packages/core/src/types.ts";
 
 const TAU = Math.PI * 2;
@@ -183,24 +183,37 @@ function ascending(a: number, b: number): number {
 }
 
 test("springs are frame-rate independent, start without a kink and settle", function springs() {
+	const stiffness = frequency(8);
 	const coarse = spring(0),
 		fine = spring(0);
-	stepSpring(coarse, 1, 8, 0.5);
-	for (let i = 0; i < 30; i++) stepSpring(fine, 1, 8, 0.5 / 30);
+	for (let i = 0; i < 4; i++) stepSpring(coarse, 1, stiffness, elapsed(32, 0));
+	for (let i = 0; i < 32; i++) stepSpring(fine, 1, stiffness, elapsed(4, 0));
 	assert.ok(Math.abs(coarse.value - fine.value) < 1e-9);
 	assert.ok(Math.abs(coarse.velocity - fine.velocity) < 1e-9);
 	const start = spring(0);
-	stepSpring(start, 1, 8, 1 / 240);
+	stepSpring(start, 1, stiffness, elapsed(4, 0));
 	assert.ok(start.value < 0.001, "A critically damped spring eases in from rest");
-	const rest = spring(0);
+	const resting = spring(0);
 	let peak = 0;
 	for (let i = 0; i < 240; i++) {
-		stepSpring(rest, 1, 8, 1 / 60);
-		peak = Math.max(peak, rest.value);
+		stepSpring(resting, 1, stiffness, elapsed(16.67, undefined));
+		peak = Math.max(peak, resting.value);
 	}
 	assert.ok(peak <= 1 + 1e-9, "Critical damping never overshoots");
-	assert.ok(settled(rest, 1, 0.0005));
-	assert.ok(Math.abs(ease(0.3, 33.34) - (1 - 0.7 * 0.7)) < 1e-9);
+	assert.ok(settled(resting, 1, 0.0005));
+	assert.ok(Math.abs(ease(0.3, elapsed(33.34, 0)) - (1 - 0.7 * 0.7)) < 1e-9);
+});
+
+test("spring inputs reject values that would stall or diverge", function springInputs() {
+	for (const invalid of [0, -1, Number.NaN, Number.POSITIVE_INFINITY])
+		assert.throws(function create() {
+			frequency(invalid);
+		}, RangeError);
+	assert.equal(elapsed(100, 200), 0.001, "Time running backwards still advances by the shortest frame");
+	assert.equal(elapsed(5000, 0), 0.064, "A stalled tab resumes with at most one long frame");
+	assert.equal(elapsed(16, undefined), 0.01667, "The first frame after a pause assumes 60 Hz");
+	assert.equal(elapsed(Number.NaN, 0), 0.01667);
+	assert.deepEqual(inlinePoint(harness().element, "--x", "--y"), undefined);
 });
 
 test("view: a short exit holds the scene, then it relaxes to center without snapping", function viewLeave() {
@@ -324,6 +337,10 @@ test("resampled trails are evenly spaced and keep their ends", function resample
 	);
 	assert.equal(points.length, 11);
 	for (let i = 0; i < points.length; i++) assert.ok(Math.abs(points[i].x - i) < 1e-9);
+	assert.throws(function single() {
+		resampleTrail([{ x: 0, y: 0 }], 1);
+	}, RangeError);
+	assert.deepEqual(anchorTrail([], { x: 4, y: 5 }), [{ x: 4, y: 5 }]);
 	assert.deepEqual(resampleTrail([{ x: 4, y: 5 }], 3), [
 		{ x: 4, y: 5 },
 		{ x: 4, y: 5 },

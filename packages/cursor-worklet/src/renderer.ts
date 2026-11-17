@@ -2,7 +2,7 @@ import { blur, color, commonProperties, controls, drawable, glow, number, TAU, t
 import { noise } from "../../core/src/noise.ts";
 import { material } from "../../core/src/surface.ts";
 import type { PaintContext, PaintSize, PaintProperties } from "../../core/src/types.ts";
-import { parseTrail, resampleTrail, smoothTrail } from "./trails.ts";
+import { anchorTrail, parseTrail, resampleTrail, smoothTrail } from "./trails.ts";
 import type { TrailPoint } from "./trails.ts";
 
 export const inputProperties = [
@@ -88,7 +88,7 @@ const TRAIL_POINTS = 24;
 /** Read the pointer trail and blend it continuously into an animated idle wisp as it reels in. The wisp streams behind the last direction of travel, so a settling trail relaxes into it instead of popping to a fixed pose. @param properties CSS inputs. @param x Head x. @param y Head y. @param radius Cursor radius. @param phase Loop phase. @returns Smoothed trail, head first. */
 function trail(properties: PaintProperties, x: number, y: number, radius: number, phase: number): TrailPoint[] {
 	const history = parseTrail(token(properties, "--cursor-trail", ""));
-	const live = resampleTrail(history.length ? history : [{ x, y }], TRAIL_POINTS);
+	const live = resampleTrail(anchorTrail(history, { x, y }), TRAIL_POINTS);
 	let length = 0;
 	for (let i = 1; i < history.length; i++) length += Math.hypot(history[i].x - history[i - 1].x, history[i].y - history[i - 1].y);
 	// Crossfade around the idle tail's own length, so the visible length stays nearly constant while the trail reels in.
@@ -440,7 +440,8 @@ function atom(
 	rings: number,
 	orbit: number,
 ): void {
-	const electrons: { x: number; y: number; front: boolean; depth: number; hue: number }[] = [];
+	/** Electrons with their depth along the view axis; positive depth is in front of the nucleus. */
+	const electrons: { x: number; y: number; depth: number; hue: number }[] = [];
 	/** Stroke one half of every orbit with a conic gradient that brightens toward each electron. @param front Whether to draw the near half. */
 	function orbits(front: boolean): void {
 		for (let ring = 0; ring < rings; ring++) {
@@ -467,7 +468,6 @@ function atom(
 			electrons.push({
 				x: x + Math.cos(a) * r * Math.cos(tilt) - Math.sin(a) * r * squash * Math.sin(tilt),
 				y: y + Math.cos(a) * r * Math.sin(tilt) + Math.sin(a) * r * squash * Math.cos(tilt),
-				front: Math.sin(a) >= 0,
 				depth: Math.sin(a),
 				hue: hue + ring * 18,
 			});
@@ -476,7 +476,7 @@ function atom(
 	/** Paint electrons on one side of the nucleus. @param front Whether to draw near electrons. */
 	function particles(front: boolean): void {
 		for (const electron of electrons) {
-			if (electron.front !== front) continue;
+			if (electron.depth >= 0 !== front) continue;
 			const exposure = opacity * (0.55 + 0.45 * smoothstep(-0.45, 0.45, electron.depth));
 			glow(ctx, electron.x, electron.y, Math.max(1, radius * 0.6 * bloom), `hsla(${electron.hue}, 100%, 68%, ${exposure * 0.7})`);
 			glow(ctx, electron.x, electron.y, Math.max(1, radius * 0.18), `rgba(255, 255, 255, ${Math.min(1, exposure * 1.2)})`);

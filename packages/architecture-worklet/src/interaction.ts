@@ -1,9 +1,19 @@
-import { settled, spring, stepSpring } from "../../core/src/motion.ts";
+import { elapsed, frequency, rest, settled, spring, stepSpring } from "../../core/src/motion.ts";
+import type { Frequency, Spring } from "../../core/src/motion.ts";
 
-/** Spring frequencies per input: view, view, floor separation, camera travel. Lower values move more slowly. */
-const FREQUENCIES = [9, 9, 6.5, 7.5];
-/** Gentler frequency for the view relaxing to center after the pointer leaves. */
-const RETURN_FREQUENCY = 2.4;
+/** Gentler stiffness for the view relaxing to center after the pointer leaves. */
+const RETURN_FREQUENCY = frequency(2.4);
+
+/** One animated CSS input: its property, spring, goal and stiffness travel together. */
+interface Channel {
+	readonly name: string;
+	/** Stiffness used for direct input. Lower values move more slowly. */
+	readonly stiffness: Frequency;
+	readonly state: Spring;
+	target: number;
+	/** Stiffness of the current motion: the channel's own, or a gentler one while relaxing. */
+	current: Frequency;
+}
 /** Pause before relaxing, so brief exits to nearby controls do not move the camera. */
 const RETURN_DELAY = 900;
 
@@ -16,28 +26,31 @@ export function attachArchitecture(element: HTMLElement, options: ArchitectureOp
 	const view = element.ownerDocument.defaultView;
 	if (!view) return function noop() {};
 	const document = element.ownerDocument;
-	const names = ["--worklet-pointer-x", "--worklet-pointer-y", "--architecture-explode", "--architecture-travel"];
-	const previous = names.map(function read(name) {
-		return { value: element.style.getPropertyValue(name), priority: element.style.getPropertyPriority(name) };
-	});
-	const reduced = view.matchMedia("(prefers-reduced-motion: reduce)");
-	const values = [readNumber(0, 0.5), readNumber(1, 0.5), readNumber(2, 0), readNumber(3, 0)].map(spring);
-	const targets = values.map(function rest(state) {
-		return state.value;
-	});
-	const frequencies = [...FREQUENCIES];
-	const dirty = new Set<number>();
-	let frame = 0,
-		timer = 0,
-		disposed = false,
-		last = 0;
-	let pointer: number | null = null;
-	let keyboardHeld = false;
-	/** Read externally driven CSS state before taking ownership. @param index Property index. @param fallback Default. @returns Bounded number. */
-	function readNumber(index: number, fallback: number): number {
-		const value = parseFloat(view!.getComputedStyle(element).getPropertyValue(names[index]));
+	/** Read externally driven CSS state before taking ownership. @param name Custom property. @param fallback Default. @returns Bounded number. */
+	function readNumber(name: string, fallback: number): number {
+		const value = parseFloat(view!.getComputedStyle(element).getPropertyValue(name));
 		return Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : fallback;
 	}
+	/** Create a channel resting at its current CSS value. @param name Custom property. @param fallback Default. @param stiffness Direct-input stiffness. @returns Channel. */
+	function channel(name: string, fallback: number, stiffness: Frequency): Channel {
+		const state = spring(readNumber(name, fallback));
+		return { name, stiffness, state, target: state.value, current: stiffness };
+	}
+	const lookX = channel("--worklet-pointer-x", 0.5, frequency(9)),
+		lookY = channel("--worklet-pointer-y", 0.5, frequency(9)),
+		explode = channel("--architecture-explode", 0, frequency(6.5)),
+		travel = channel("--architecture-travel", 0, frequency(7.5));
+	const channels = [lookX, lookY, explode, travel];
+	const previous = channels.map(function read({ name }) {
+		return { name, value: element.style.getPropertyValue(name), priority: element.style.getPropertyPriority(name) };
+	});
+	const reduced = view.matchMedia("(prefers-reduced-motion: reduce)");
+	const dirty = new Set<Channel>();
+	let frame = 0,
+		disposed = false;
+	let timer: number | undefined, last: number | undefined;
+	let pointer: number | null = null;
+	let keyboardHeld = false;
 	/** Schedule a frame only while interpolation has work and the page is visible. */
 	function schedule(): void {
 		if (!disposed && !frame && !document.hidden) frame = view!.requestAnimationFrame(update);
@@ -46,37 +59,32 @@ export function attachArchitecture(element: HTMLElement, options: ArchitectureOp
 	function update(now: number): void {
 		frame = 0;
 		if (disposed || document.hidden) return;
-		const seconds = (last ? Math.min(64, now - last) : 16.67) / 1000;
+		const seconds = elapsed(now, last);
 		last = now;
-		for (const index of dirty) {
-			const state = values[index];
-			if (reduced.matches) state.value = targets[index];
-			else stepSpring(state, targets[index], frequencies[index], seconds);
-			if (reduced.matches || settled(state, targets[index], 0.0005)) {
-				state.value = targets[index];
-				state.velocity = 0;
-				dirty.delete(index);
+		for (const input of dirty) {
+			if (reduced.matches) rest(input.state, input.target);
+			else stepSpring(input.state, input.target, input.current, seconds);
+			if (reduced.matches || settled(input.state, input.target, 0.0005)) {
+				rest(input.state, input.target);
+				dirty.delete(input);
 			}
-			element.style.setProperty(names[index], state.value.toFixed(4));
+			element.style.setProperty(input.name, input.state.value.toFixed(4));
 		}
 		if (dirty.size) schedule();
-		else last = 0;
+		else last = undefined;
 	}
-	/** Set a spring target. Idle inputs first adopt any externally driven CSS value, so the motion continues from what is on screen. @param index Property. @param value Target. @param frequency Optional spring frequency. */
-	function target(index: number, value: number, frequency = FREQUENCIES[index]): void {
-		if (!dirty.has(index)) {
-			values[index].value = readNumber(index, values[index].value);
-			values[index].velocity = 0;
-		}
-		targets[index] = Math.max(0, Math.min(1, value));
-		frequencies[index] = frequency;
-		dirty.add(index);
+	/** Set a spring target. Idle inputs first adopt any externally driven CSS value, so the motion continues from what is on screen. @param input Channel. @param value Target. @param stiffness Optional stiffness; defaults to the channel's own. */
+	function target(input: Channel, value: number, stiffness = input.stiffness): void {
+		if (!dirty.has(input)) rest(input.state, readNumber(input.name, input.state.value));
+		input.target = Math.max(0, Math.min(1, value));
+		input.current = stiffness;
+		dirty.add(input);
 		schedule();
 	}
 	/** Cancel a pending return to center. */
 	function hold(): void {
-		if (timer) view!.clearTimeout(timer);
-		timer = 0;
+		if (timer !== undefined) view!.clearTimeout(timer);
+		timer = undefined;
 	}
 	/** Track a pointer in the scene. @param event Pointer event. */
 	function move(event: PointerEvent): void {
@@ -84,15 +92,15 @@ export function attachArchitecture(element: HTMLElement, options: ArchitectureOp
 		const rect = element.getBoundingClientRect();
 		if (!rect.width || !rect.height) return;
 		hold();
-		target(0, (event.clientX - rect.left) / rect.width);
-		target(1, (event.clientY - rect.top) / rect.height);
+		target(lookX, (event.clientX - rect.left) / rect.width);
+		target(lookY, (event.clientY - rect.top) / rect.height);
 	}
 	/** Begin architectural separation for the primary pointer. @param event Pointer event. */
 	function down(event: PointerEvent): void {
 		if (!event.isPrimary || event.button !== 0) return;
 		if ((event.target as Element | null)?.closest?.("button, input, select, textarea, a, summary, [contenteditable]")) return;
 		pointer = event.pointerId;
-		target(2, 1);
+		target(explode, 1);
 		move(event);
 	}
 	/** Reassemble after release or cancellation. */
@@ -100,16 +108,16 @@ export function attachArchitecture(element: HTMLElement, options: ArchitectureOp
 		if (pointer === null && !keyboardHeld) return;
 		pointer = null;
 		keyboardHeld = false;
-		target(2, 0);
+		target(explode, 0);
 	}
 	/** Relax the view to center after a short pause, and reassemble the floors. */
 	function leave(): void {
 		hold();
 		release();
 		timer = view!.setTimeout(function relax() {
-			timer = 0;
-			target(0, 0.5, RETURN_FREQUENCY);
-			target(1, 0.5, RETURN_FREQUENCY);
+			timer = undefined;
+			target(lookX, 0.5, RETURN_FREQUENCY);
+			target(lookY, 0.5, RETURN_FREQUENCY);
 		}, RETURN_DELAY);
 	}
 	/** Wheel input is enabled only for dedicated experiences. @param event Wheel input. */
@@ -117,23 +125,23 @@ export function attachArchitecture(element: HTMLElement, options: ArchitectureOp
 		if (!options.wheel || event.ctrlKey) return;
 		if ((event.target as Element | null)?.closest?.("input, select, textarea, [contenteditable]")) return;
 		const scale = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? element.clientHeight : 1;
-		const current = dirty.has(3) ? targets[3] : readNumber(3, 0);
+		const current = dirty.has(travel) ? travel.target : readNumber(travel.name, 0);
 		const next = Math.max(0, Math.min(1, current + event.deltaY * scale * 0.00045));
 		if (next === current) return;
 		event.preventDefault();
-		target(3, next);
+		target(travel, next);
 	}
 	/** Keyboard navigation works only while the painted surface has focus. @param event Keyboard input. */
 	function key(event: KeyboardEvent): void {
 		if (event.target !== element) return;
 		if (event.key === "ArrowUp" || event.key === "ArrowDown") {
 			event.preventDefault();
-			const current = dirty.has(3) ? targets[3] : readNumber(3, 0);
-			target(3, current + (event.key === "ArrowUp" ? 0.05 : -0.05));
+			const current = dirty.has(travel) ? travel.target : readNumber(travel.name, 0);
+			target(travel, current + (event.key === "ArrowUp" ? 0.05 : -0.05));
 		} else if (event.code === "Space") {
 			event.preventDefault();
 			keyboardHeld = true;
-			target(2, 1);
+			target(explode, 1);
 		}
 	}
 	/** Release a keyboard hold. @param event Keyboard input. */
@@ -144,7 +152,7 @@ export function attachArchitecture(element: HTMLElement, options: ArchitectureOp
 	function visibility(): void {
 		if (frame) view!.cancelAnimationFrame(frame);
 		frame = 0;
-		last = 0;
+		last = undefined;
 		release();
 		if (!document.hidden && dirty.size) schedule();
 	}
@@ -177,9 +185,9 @@ export function attachArchitecture(element: HTMLElement, options: ArchitectureOp
 		view.removeEventListener("blur", leave);
 		reduced.removeEventListener("change", leave);
 		document.removeEventListener("visibilitychange", visibility);
-		for (let i = 0; i < names.length; i++) {
-			if (previous[i].value) element.style.setProperty(names[i], previous[i].value, previous[i].priority);
-			else element.style.removeProperty(names[i]);
+		for (const { name, value, priority } of previous) {
+			if (value) element.style.setProperty(name, value, priority);
+			else element.style.removeProperty(name);
 		}
 	};
 }

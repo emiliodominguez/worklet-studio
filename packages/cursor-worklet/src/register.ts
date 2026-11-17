@@ -1,4 +1,5 @@
-import { ease, inline } from "../../core/src/motion.ts";
+import { ease, elapsed, inline, inlinePoint } from "../../core/src/motion.ts";
+import type { Point } from "../../core/src/motion.ts";
 import { loadWorklet } from "../../core/src/register.ts";
 
 /** Register the painter. @param url Optional hosted module URL. @returns Whether CSS Paint is supported and the module loaded. */
@@ -30,46 +31,43 @@ export function attachPointer(element: HTMLElement, options: PointerOptions = {}
 	if (!view) return function noop() {};
 	const names = ["--cursor-position-x", "--cursor-position-y", "--cursor-trail", "--cursor-speed", "--cursor-press", "--cursor-heading"];
 	const previous = names.map(function read(name) {
-		return { value: element.style.getPropertyValue(name), priority: element.style.getPropertyPriority(name) };
+		return { name, value: element.style.getPropertyValue(name), priority: element.style.getPropertyPriority(name) };
 	});
 	const smoothing = Number.isFinite(options.smoothing) ? Math.max(0.05, Math.min(1, options.smoothing!)) : 1;
 	const limit = Number.isFinite(options.trail) ? Math.max(2, Math.min(32, Math.floor(options.trail!))) : 24;
 	const reduced = view.matchMedia("(prefers-reduced-motion: reduce)");
-	const startX = inline(element, names[0]),
-		startY = inline(element, names[1]),
-		startHeading = inline(element, names[5]) ?? 0;
+	/** Where a previous helper left the light; the first pointer move glides from here instead of jumping. */
+	const start = inlinePoint(element, names[0], names[1]);
+	const startHeading = inline(element, names[5]) ?? 0;
+	/** Unit vector of travel; the idle tail streams opposite to it. */
+	const heading: Point = { x: Math.cos(startHeading), y: Math.sin(startHeading) };
 	let frame = 0,
-		lastTime = 0,
-		clientX = 0,
-		clientY = 0,
-		x = startX ?? 0,
-		y = startY ?? 0,
 		speed = 0,
-		headingX = Math.cos(startHeading),
-		headingY = Math.sin(startHeading),
 		press = 0,
-		targetPress = 0;
-	let initialized = false,
+		targetPress = 0,
 		disposed = false;
-	let chain: { x: number; y: number }[] = [];
+	let lastTime: number | undefined;
+	/** The latest pointer in client coordinates and the light chasing it; absent until the first pointer arrives. */
+	let tracking: { client: Point; head: Point } | undefined;
+	let chain: Point[] = [];
 
 	/** Schedule a frame only while the document is visible. */
 	function schedule(): void {
 		if (!frame && !disposed && !element.ownerDocument.hidden) frame = view!.requestAnimationFrame(update);
 	}
-	/** Convert the latest client coordinates into the element's CSS pixel space. @returns Local target, or undefined for an empty box. */
-	function local(): { x: number; y: number } | undefined {
+	/** Convert client coordinates into the element's CSS pixel space. @param point Client coordinates. @returns Local position, or undefined for an empty box. */
+	function local(point: Point): Point | undefined {
 		const rect = element.getBoundingClientRect();
 		if (rect.width <= 0 || rect.height <= 0) return undefined;
-		return { x: ((clientX - rect.left) * element.offsetWidth) / rect.width, y: ((clientY - rect.top) * element.offsetHeight) / rect.height };
+		return { x: ((point.x - rect.left) * element.offsetWidth) / rect.width, y: ((point.y - rect.top) * element.offsetHeight) / rect.height };
 	}
-	/** Pull each trail link toward its leader, head first. @param fraction Frame-rate corrected follow fraction. @returns Largest remaining gap between neighbors. */
-	function reel(fraction: number): number {
+	/** Pull each trail link toward its leader, head first. @param lead The light's position. @param fraction Frame-rate corrected follow fraction. @returns Largest remaining gap between neighbors. */
+	function reel(lead: Point, fraction: number): number {
 		const length = reduced.matches ? 1 : limit;
-		while (chain.length < length) chain.push({ x, y });
+		while (chain.length < length) chain.push({ ...lead });
 		chain.length = length;
-		chain[0].x = x;
-		chain[0].y = y;
+		chain[0].x = lead.x;
+		chain[0].y = lead.y;
 		let gap = 0;
 		for (let i = 1; i < chain.length; i++) {
 			const link = chain[i],
@@ -83,44 +81,45 @@ export function attachPointer(element: HTMLElement, options: PointerOptions = {}
 	/** Advance smoothing and publish bounded, finite CSS inputs. @param now Animation timestamp. */
 	function update(now: number): void {
 		frame = 0;
-		if (disposed || !initialized || element.ownerDocument.hidden) return;
-		const target = local();
+		if (disposed || !tracking || element.ownerDocument.hidden) return;
+		const { client, head } = tracking;
+		const target = local(client);
 		if (!target) return;
-		const delta = lastTime ? Math.min(64, Math.max(1, now - lastTime)) : 16.67;
+		const seconds = elapsed(now, lastTime);
 		lastTime = now;
 		const instant = reduced.matches;
-		const factor = instant ? 1 : ease(smoothing, delta);
-		const dx = (target.x - x) * factor,
-			dy = (target.y - y) * factor;
-		x += dx;
-		y += dy;
-		if (Math.hypot(target.x - x, target.y - y) < 0.05) {
-			x = target.x;
-			y = target.y;
+		const factor = instant ? 1 : ease(smoothing, seconds);
+		const dx = (target.x - head.x) * factor,
+			dy = (target.y - head.y) * factor;
+		head.x += dx;
+		head.y += dy;
+		if (Math.hypot(target.x - head.x, target.y - head.y) < 0.05) {
+			head.x = target.x;
+			head.y = target.y;
 		}
 		const moved = Math.hypot(dx, dy);
-		const measured = instant ? 0 : Math.min(60, (moved * 16.67) / delta);
-		speed += (measured - speed) * ease(SPEED_FOLLOW, delta);
+		const measured = instant ? 0 : Math.min(60, moved / (seconds * 60));
+		speed += (measured - speed) * ease(SPEED_FOLLOW, seconds);
 		if (speed < 0.01) speed = 0;
 		if (moved > 0.25 && !instant) {
-			const turn = ease(HEADING_FOLLOW, delta);
-			headingX += (dx / moved - headingX) * turn;
-			headingY += (dy / moved - headingY) * turn;
-			const norm = Math.hypot(headingX, headingY) || 1;
-			headingX /= norm;
-			headingY /= norm;
+			const turn = ease(HEADING_FOLLOW, seconds);
+			heading.x += (dx / moved - heading.x) * turn;
+			heading.y += (dy / moved - heading.y) * turn;
+			const norm = Math.hypot(heading.x, heading.y) || 1;
+			heading.x /= norm;
+			heading.y /= norm;
 		}
-		press += (targetPress - press) * (instant ? 1 : ease(PRESS_FOLLOW, delta));
+		press += (targetPress - press) * (instant ? 1 : ease(PRESS_FOLLOW, seconds));
 		if (Math.abs(targetPress - press) < 0.001) press = targetPress;
-		const gap = reel(instant ? 1 : ease(LINK_FOLLOW, delta));
+		const gap = reel(head, instant ? 1 : ease(LINK_FOLLOW, seconds));
 		if (gap < 0.05) {
 			for (const link of chain) {
-				link.x = x;
-				link.y = y;
+				link.x = head.x;
+				link.y = head.y;
 			}
 		}
-		element.style.setProperty(names[0], x.toFixed(2));
-		element.style.setProperty(names[1], y.toFixed(2));
+		element.style.setProperty(names[0], head.x.toFixed(2));
+		element.style.setProperty(names[1], head.y.toFixed(2));
 		element.style.setProperty(
 			names[2],
 			chain
@@ -131,25 +130,21 @@ export function attachPointer(element: HTMLElement, options: PointerOptions = {}
 		);
 		element.style.setProperty(names[3], speed.toFixed(2));
 		element.style.setProperty(names[4], press.toFixed(3));
-		element.style.setProperty(names[5], Math.atan2(headingY, headingX).toFixed(3));
-		const moving = x !== target.x || y !== target.y || gap >= 0.05 || speed > 0 || press !== targetPress;
+		element.style.setProperty(names[5], Math.atan2(heading.y, heading.x).toFixed(3));
+		const moving = head.x !== target.x || head.y !== target.y || gap >= 0.05 || speed > 0 || press !== targetPress;
 		if (moving && !instant) schedule();
-		else lastTime = 0;
+		else lastTime = undefined;
 	}
 	/** Accept a pointer position without stealing scrolling or pointer capture. @param event Pointer event. */
 	function move(event: PointerEvent): void {
 		if (event.pointerType === "touch" && !options.touch) return;
-		clientX = event.clientX;
-		clientY = event.clientY;
-		if (!initialized) {
-			const target = local();
-			if (!target) return;
-			if (startX === undefined || startY === undefined) {
-				x = target.x;
-				y = target.y;
-			}
-			chain = [];
-			initialized = true;
+		const client = { x: event.clientX, y: event.clientY };
+		if (tracking) tracking.client = client;
+		else {
+			// The light glides from where a previous helper left it, or appears under the first pointer.
+			const head = start ? { ...start } : local(client);
+			if (!head) return;
+			tracking = { client, head };
 		}
 		schedule();
 	}
@@ -177,7 +172,7 @@ export function attachPointer(element: HTMLElement, options: PointerOptions = {}
 			frame = 0;
 			targetPress = 0;
 		} else {
-			lastTime = 0;
+			lastTime = undefined;
 			schedule();
 		}
 	}
@@ -201,9 +196,9 @@ export function attachPointer(element: HTMLElement, options: PointerOptions = {}
 		reduced.removeEventListener("change", preference);
 		element.ownerDocument.removeEventListener("visibilitychange", visibility);
 		if (frame) view.cancelAnimationFrame(frame);
-		for (let i = 0; i < names.length; i++) {
-			if (previous[i].value) element.style.setProperty(names[i], previous[i].value, previous[i].priority);
-			else element.style.removeProperty(names[i]);
+		for (const { name, value, priority } of previous) {
+			if (value) element.style.setProperty(name, value, priority);
+			else element.style.removeProperty(name);
 		}
 	};
 }
