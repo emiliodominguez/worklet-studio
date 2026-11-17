@@ -119,7 +119,13 @@ export function paint(ctx: PaintContext, size: PaintSize, properties: PaintPrope
 		const local = ((a % TAU) + TAU) % TAU;
 		const margin = Math.asin(Math.min(1, reach / Math.max(reach, r)));
 		if (local > wedge + margin && local < TAU - margin) continue;
-		visible.push({ piece, x: Math.cos(a) * r, y: Math.sin(a) * r, rotation: piece.spin + phase * piece.turn * (0.4 + twist * 0.4), reach });
+		visible.push({
+			piece,
+			x: Math.cos(a) * r,
+			y: Math.sin(a) * r,
+			rotation: piece.spin + phase * piece.turn + twist * 0.4 * Math.sin(phase + piece.wobble),
+			reach,
+		});
 	}
 
 	for (let sector = 0; sector < segments; sector++) {

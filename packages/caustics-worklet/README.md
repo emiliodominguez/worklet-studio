@@ -64,7 +64,7 @@ For other build systems, copy `worklet.js` to a public asset and call `CSS.paint
 
 Register `--worklet-time` once in your document. Without an animation, the effect is a stable still image. The worklet does not own a timer or access the DOM. Pause animations when the surface is hidden.
 
-Optional `attachView(element)` eases pointer lighting or parallax through `--worklet-pointer-x` and `--worklet-pointer-y` (0–1, centered at 0.5). It stops when settled, honors reduced motion, leaves touch scrolling intact, and returns cleanup that restores previous inline values. These properties can also be driven directly by your application.
+Optional `attachView(element)` eases pointer lighting or parallax through `--worklet-pointer-x` and `--worklet-pointer-y` (0–1, centered at 0.5) on a critically damped spring, so motion starts and stops without a kink. After the pointer leaves, the view holds briefly and then drifts back to center. It continues from values a previous helper left inline, stops when settled, honors reduced motion, leaves touch scrolling intact, and returns cleanup that restores previous inline values. These properties can also be driven directly by your application.
 
 ## CSS inputs
 

@@ -290,8 +290,8 @@ export function paint(ctx: PaintContext, size: PaintSize, properties: PaintPrope
 		if (galaxy) galaxyLight(ctx, random(seed + 7), cx, cy, extent, tilt, squash, phase, hue, intensity);
 	}
 	if (threshold > 0) {
-		// Links are bucketed by opacity and weight so thousands of segments cost a handful of strokes.
-		const levels = 5,
+		// Links are bucketed by opacity and weight so thousands of segments cost a few dozen strokes. Fine buckets that start near zero let links fade in and out as stars drift instead of stepping.
+		const levels = 16,
 			paths: [number, number, number, number][][] = [];
 		for (let i = 0; i < levels * 2; i++) paths.push([]);
 		for (let i = 0; i < count; i++) {
@@ -311,7 +311,7 @@ export function paint(ctx: PaintContext, size: PaintSize, properties: PaintPrope
 						const coplanar = Math.max(0, 1 - Math.abs(a.depth - b.depth) * 2.2);
 						const strength = Math.pow(1 - distance / threshold, 1.4) * coplanar * Math.min(a.depth, b.depth);
 						if (strength < 0.02) continue;
-						const level = Math.min(levels - 1, Math.floor(strength * levels * 1.4));
+						const level = Math.min(levels - 1, Math.floor(Math.min(1, strength * 1.4) * levels));
 						paths[level + (a.depth + b.depth > 1.3 ? levels : 0)].push([a.x, a.y, b.x, b.y]);
 					}
 				}
@@ -321,7 +321,7 @@ export function paint(ctx: PaintContext, size: PaintSize, properties: PaintPrope
 			if (!paths[index].length) continue;
 			const level = index % levels,
 				near = index >= levels;
-			ctx.strokeStyle = `hsla(${hue + 25}, 80%, ${near ? 78 : 68}%, ${((level + 0.6) / levels) * 0.6 * intensity})`;
+			ctx.strokeStyle = `hsla(${hue + 25}, 80%, ${near ? 78 : 68}%, ${((level + 0.5) / levels) * 0.6 * intensity})`;
 			ctx.lineWidth = near ? 0.85 : 0.5;
 			ctx.beginPath();
 			for (const [ax, ay, bx, by] of paths[index]) {

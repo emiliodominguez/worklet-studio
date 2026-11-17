@@ -16,6 +16,26 @@ export function parseTrail(value: string): TrailPoint[] {
 	return points;
 }
 
+/** Redistribute a polyline into evenly spaced points along its length, so width and fade profiles follow the visible trail rather than how densely it was sampled. @param points Polyline, head first. @param count Number of output points, at least 2. @returns Exactly `count` points; a degenerate polyline repeats its head. */
+export function resampleTrail(points: TrailPoint[], count: number): TrailPoint[] {
+	const distances = [0];
+	for (let i = 1; i < points.length; i++)
+		distances.push(distances[i - 1] + Math.hypot(points[i].x - points[i - 1].x, points[i].y - points[i - 1].y));
+	const total = distances[distances.length - 1];
+	const result: TrailPoint[] = [];
+	let segment = 1;
+	for (let i = 0; i < count; i++) {
+		const target = (total * i) / (count - 1);
+		while (segment < points.length - 1 && distances[segment] < target) segment++;
+		const a = points[Math.max(0, segment - 1)],
+			b = points[Math.min(points.length - 1, segment)];
+		const span = distances[Math.min(points.length - 1, segment)] - distances[Math.max(0, segment - 1)];
+		const t = span > 1e-9 ? (target - distances[segment - 1]) / span : 0;
+		result.push({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t });
+	}
+	return result;
+}
+
 /** Subdivide a history curve with Catmull–Rom interpolation. @param points Control points. @returns Smooth positions with bounded sample count. */
 export function smoothTrail(points: TrailPoint[]): TrailPoint[] {
 	if (points.length < 2) return points;

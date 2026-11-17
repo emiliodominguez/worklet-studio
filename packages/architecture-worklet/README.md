@@ -71,7 +71,7 @@ For other build tools, serve the package's `worklet.js` as a static JavaScript a
 
 `attachArchitecture(element, options?)` returns an idempotent cleanup function. `attachView` is an alias for collection-wide tooling.
 
-- Move the pointer to look around with eased parallax.
+- Move the pointer to look around. Parallax, separation and travel ride critically damped springs, so the camera eases in and out instead of snapping. After the pointer leaves, the view holds briefly and then drifts back to center.
 - Hold the primary pointer, or hold Space while the element has focus, to separate the building. Release to reassemble.
 - Use the up and down arrow keys while the element has focus to move along the camera path.
 - Set `{ wheel: true }` for a dedicated full-screen scene. Wheel navigation defaults to false so embedded previews preserve page scrolling. Browser pinch zoom is never intercepted.

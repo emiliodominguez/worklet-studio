@@ -16,7 +16,7 @@ const names = [
 	"Kaleidoscope",
 ];
 
-test("immersive pointer lighting eases, recenters, and cleans up across effects", async function viewInteraction({ page }) {
+test("immersive pointer lighting eases, holds briefly, relaxes to center, and cleans up across effects", async function viewInteraction({ page }) {
 	await page.goto("/#effect=metaballs");
 	await expect(page.locator("html")).toHaveAttribute("data-ready", "true");
 	const surface = page.locator("#surface"),
@@ -36,12 +36,21 @@ test("immersive pointer lighting eases, recenters, and cleans up across effects"
 		.toBeCloseTo(0.85, 2);
 	expect(before.equals(await surface.screenshot())).toBe(false);
 	await page.mouse.move(5, 5);
+	await page.waitForTimeout(300);
+	expect(
+		await surface.evaluate(function held(node) {
+			return Number(node.style.getPropertyValue("--worklet-pointer-x"));
+		}),
+	).toBeCloseTo(0.85, 2);
 	await expect
-		.poll(async function center() {
-			return surface.evaluate(function read(node) {
-				return Number(node.style.getPropertyValue("--worklet-pointer-x"));
-			});
-		})
+		.poll(
+			async function center() {
+				return surface.evaluate(function read(node) {
+					return Number(node.style.getPropertyValue("--worklet-pointer-x"));
+				});
+			},
+			{ timeout: 10000 },
+		)
 		.toBe(0.5);
 	await page.getByRole("button", { name: "Cursor", exact: true }).click();
 	await page.mouse.move(box.x + 220, box.y + 220);

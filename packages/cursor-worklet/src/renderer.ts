@@ -2,7 +2,7 @@ import { blur, color, commonProperties, controls, drawable, glow, number, TAU, t
 import { noise } from "../../core/src/noise.ts";
 import { material } from "../../core/src/surface.ts";
 import type { PaintContext, PaintSize, PaintProperties } from "../../core/src/types.ts";
-import { parseTrail, smoothTrail } from "./trails.ts";
+import { parseTrail, resampleTrail, smoothTrail } from "./trails.ts";
 import type { TrailPoint } from "./trails.ts";
 
 export const inputProperties = [
@@ -22,6 +22,7 @@ export const inputProperties = [
 	"--cursor-press",
 	"--cursor-twist",
 	"--cursor-speed",
+	"--cursor-heading",
 ];
 
 /** Trace a polyline into the current path. @param ctx Paint context. @param points Ordered points. */
@@ -75,17 +76,37 @@ function hotspot(ctx: PaintContext, x: number, y: number, radius: number, hue: n
 	ctx.fill();
 }
 
-/** Read the pointer history, substituting an animated wisp when the pointer is still. @param properties CSS inputs. @param x Head x. @param y Head y. @param radius Cursor radius. @param phase Loop phase. @returns Smoothed trail, head first. */
+/** Hermite smoothstep. @param edge0 Lower edge. @param edge1 Upper edge. @param value Input. @returns Eased 0–1 value. */
+function smoothstep(edge0: number, edge1: number, value: number): number {
+	const t = Math.max(0, Math.min(1, (value - edge0) / (edge1 - edge0)));
+	return t * t * (3 - 2 * t);
+}
+
+/** Number of evenly spaced control points shared by the live trail and the idle wisp, so they can blend point for point. */
+const TRAIL_POINTS = 24;
+
+/** Read the pointer trail and blend it continuously into an animated idle wisp as it reels in. The wisp streams behind the last direction of travel, so a settling trail relaxes into it instead of popping to a fixed pose. @param properties CSS inputs. @param x Head x. @param y Head y. @param radius Cursor radius. @param phase Loop phase. @returns Smoothed trail, head first. */
 function trail(properties: PaintProperties, x: number, y: number, radius: number, phase: number): TrailPoint[] {
-	let points = parseTrail(token(properties, "--cursor-trail", ""));
+	const history = parseTrail(token(properties, "--cursor-trail", ""));
+	const live = resampleTrail(history.length ? history : [{ x, y }], TRAIL_POINTS);
 	let length = 0;
-	for (let i = 1; i < points.length; i++) length += Math.hypot(points[i].x - points[i - 1].x, points[i].y - points[i - 1].y);
-	if (points.length < 2 || length < Math.max(2, radius * 0.6)) {
-		points = [];
-		for (let i = 0; i < 24; i++) {
-			const u = i / 23;
-			points.push({ x: x - u * radius * 7, y: y + Math.sin(u * 5 - phase) * radius * 1.4 * Math.sin((u * Math.PI) / 2) });
-		}
+	for (let i = 1; i < history.length; i++) length += Math.hypot(history[i].x - history[i - 1].x, history[i].y - history[i - 1].y);
+	// Crossfade around the idle tail's own length, so the visible length stays nearly constant while the trail reels in.
+	const idle = radius * 7;
+	const rest = 1 - smoothstep(idle * 0.4, idle * 1.2, length);
+	if (rest <= 0) return smoothTrail(live);
+	const heading = number(properties, "--cursor-heading", 0, -100, 100);
+	const backX = -Math.cos(heading),
+		backY = -Math.sin(heading);
+	const breath = 1 + Math.sin(phase) * 0.08;
+	const points: TrailPoint[] = [];
+	for (let i = 0; i < TRAIL_POINTS; i++) {
+		const u = i / (TRAIL_POINTS - 1);
+		const reach = u * idle * breath,
+			sway = Math.sin(u * 5 - phase) * radius * 1.4 * Math.sin((u * Math.PI) / 2);
+		const wispX = x + backX * reach - backY * sway,
+			wispY = y + backY * reach + backX * sway;
+		points.push({ x: live[i].x + (wispX - live[i].x) * rest, y: live[i].y + (wispY - live[i].y) * rest });
 	}
 	return smoothTrail(points);
 }
@@ -275,7 +296,7 @@ function plasma(
 	const focus = -Math.PI * 0.7;
 	for (let filament = 0; filament < count; filament++) {
 		const drift = noise(filament * 1.7 + Math.cos(phase) * 0.9, Math.sin(phase) * 0.9, seed + 5) * 1.6;
-		let angle = (filament / count) * TAU + drift + phase * (filament % 2 ? 0.5 : -0.5);
+		let angle = (filament / count) * TAU + drift + Math.sin(phase + filament * 2.4) * 0.55;
 		angle += Math.atan2(Math.sin(focus - angle), Math.cos(focus - angle)) * press * 0.85;
 		const path: TrailPoint[] = [];
 		for (let step = 0; step <= 22; step++) {
@@ -419,7 +440,7 @@ function atom(
 	rings: number,
 	orbit: number,
 ): void {
-	const electrons: { x: number; y: number; front: boolean; hue: number }[] = [];
+	const electrons: { x: number; y: number; front: boolean; depth: number; hue: number }[] = [];
 	/** Stroke one half of every orbit with a conic gradient that brightens toward each electron. @param front Whether to draw the near half. */
 	function orbits(front: boolean): void {
 		for (let ring = 0; ring < rings; ring++) {
@@ -447,6 +468,7 @@ function atom(
 				x: x + Math.cos(a) * r * Math.cos(tilt) - Math.sin(a) * r * squash * Math.sin(tilt),
 				y: y + Math.cos(a) * r * Math.sin(tilt) + Math.sin(a) * r * squash * Math.cos(tilt),
 				front: Math.sin(a) >= 0,
+				depth: Math.sin(a),
 				hue: hue + ring * 18,
 			});
 		}
@@ -455,7 +477,7 @@ function atom(
 	function particles(front: boolean): void {
 		for (const electron of electrons) {
 			if (electron.front !== front) continue;
-			const exposure = opacity * (front ? 1 : 0.55);
+			const exposure = opacity * (0.55 + 0.45 * smoothstep(-0.45, 0.45, electron.depth));
 			glow(ctx, electron.x, electron.y, Math.max(1, radius * 0.6 * bloom), `hsla(${electron.hue}, 100%, 68%, ${exposure * 0.7})`);
 			glow(ctx, electron.x, electron.y, Math.max(1, radius * 0.18), `rgba(255, 255, 255, ${Math.min(1, exposure * 1.2)})`);
 		}
@@ -506,7 +528,7 @@ export function paint(ctx: PaintContext, size: PaintSize, properties: PaintPrope
 		const progress = (((phase / TAU) % 1) + 1) % 1;
 		for (let ring = 0; ring < rings; ring++) {
 			const age = ring + progress;
-			ctx.globalAlpha = Math.min(1, opacity * (1 - age / rings));
+			ctx.globalAlpha = Math.min(1, opacity * (1 - age / rings) * smoothstep(0, 0.6, age));
 			ctx.beginPath();
 			ctx.arc(x, y, radius * age * 1.5, 0, TAU);
 			ctx.fill();

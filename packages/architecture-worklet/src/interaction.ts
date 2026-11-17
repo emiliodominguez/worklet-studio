@@ -1,3 +1,12 @@
+import { settled, spring, stepSpring } from "../../core/src/motion.ts";
+
+/** Spring frequencies per input: view, view, floor separation, camera travel. Lower values move more slowly. */
+const FREQUENCIES = [9, 9, 6.5, 7.5];
+/** Gentler frequency for the view relaxing to center after the pointer leaves. */
+const RETURN_FREQUENCY = 2.4;
+/** Pause before relaxing, so brief exits to nearby controls do not move the camera. */
+const RETURN_DELAY = 900;
+
 export interface ArchitectureOptions {
 	wheel?: boolean;
 }
@@ -12,10 +21,14 @@ export function attachArchitecture(element: HTMLElement, options: ArchitectureOp
 		return { value: element.style.getPropertyValue(name), priority: element.style.getPropertyPriority(name) };
 	});
 	const reduced = view.matchMedia("(prefers-reduced-motion: reduce)");
-	const values = [0.5, 0.5, readNumber(2, 0), readNumber(3, 0)];
-	const targets = [...values];
+	const values = [readNumber(0, 0.5), readNumber(1, 0.5), readNumber(2, 0), readNumber(3, 0)].map(spring);
+	const targets = values.map(function rest(state) {
+		return state.value;
+	});
+	const frequencies = [...FREQUENCIES];
 	const dirty = new Set<number>();
 	let frame = 0,
+		timer = 0,
 		disposed = false,
 		last = 0;
 	let pointer: number | null = null;
@@ -29,36 +42,48 @@ export function attachArchitecture(element: HTMLElement, options: ArchitectureOp
 	function schedule(): void {
 		if (!disposed && !frame && !document.hidden) frame = view!.requestAnimationFrame(update);
 	}
-	/** Interpolate changed inputs, then stop when settled. @param now Frame timestamp. */
+	/** Advance changed inputs on critically damped springs, then stop when settled. @param now Frame timestamp. */
 	function update(now: number): void {
 		frame = 0;
 		if (disposed || document.hidden) return;
-		const delta = last ? Math.min(50, now - last) : 16.67;
+		const seconds = (last ? Math.min(64, now - last) : 16.67) / 1000;
 		last = now;
 		for (const index of dirty) {
-			const factor = reduced.matches ? 1 : 1 - Math.exp(-delta / (index === 2 ? 190 : 120));
-			values[index] += (targets[index] - values[index]) * factor;
-			if (Math.abs(targets[index] - values[index]) < 0.0005) {
-				values[index] = targets[index];
+			const state = values[index];
+			if (reduced.matches) state.value = targets[index];
+			else stepSpring(state, targets[index], frequencies[index], seconds);
+			if (reduced.matches || settled(state, targets[index], 0.0005)) {
+				state.value = targets[index];
+				state.velocity = 0;
 				dirty.delete(index);
 			}
-			element.style.setProperty(names[index], values[index].toFixed(4));
+			element.style.setProperty(names[index], state.value.toFixed(4));
 		}
 		if (dirty.size) schedule();
 		else last = 0;
 	}
-	/** Set an interpolation target. @param index Property. @param value Target. */
-	function target(index: number, value: number): void {
-		if (!dirty.has(index)) values[index] = readNumber(index, values[index]);
+	/** Set a spring target. Idle inputs first adopt any externally driven CSS value, so the motion continues from what is on screen. @param index Property. @param value Target. @param frequency Optional spring frequency. */
+	function target(index: number, value: number, frequency = FREQUENCIES[index]): void {
+		if (!dirty.has(index)) {
+			values[index].value = readNumber(index, values[index].value);
+			values[index].velocity = 0;
+		}
 		targets[index] = Math.max(0, Math.min(1, value));
+		frequencies[index] = frequency;
 		dirty.add(index);
 		schedule();
+	}
+	/** Cancel a pending return to center. */
+	function hold(): void {
+		if (timer) view!.clearTimeout(timer);
+		timer = 0;
 	}
 	/** Track a pointer in the scene. @param event Pointer event. */
 	function move(event: PointerEvent): void {
 		if (reduced.matches || (event.pointerType === "touch" && pointer !== event.pointerId)) return;
 		const rect = element.getBoundingClientRect();
 		if (!rect.width || !rect.height) return;
+		hold();
 		target(0, (event.clientX - rect.left) / rect.width);
 		target(1, (event.clientY - rect.top) / rect.height);
 	}
@@ -77,11 +102,15 @@ export function attachArchitecture(element: HTMLElement, options: ArchitectureOp
 		keyboardHeld = false;
 		target(2, 0);
 	}
-	/** Recenter when leaving the surface. */
+	/** Relax the view to center after a short pause, and reassemble the floors. */
 	function leave(): void {
-		target(0, 0.5);
-		target(1, 0.5);
+		hold();
 		release();
+		timer = view!.setTimeout(function relax() {
+			timer = 0;
+			target(0, 0.5, RETURN_FREQUENCY);
+			target(1, 0.5, RETURN_FREQUENCY);
+		}, RETURN_DELAY);
 	}
 	/** Wheel input is enabled only for dedicated experiences. @param event Wheel input. */
 	function wheel(event: WheelEvent): void {
@@ -134,6 +163,7 @@ export function attachArchitecture(element: HTMLElement, options: ArchitectureOp
 	return function cleanup(): void {
 		if (disposed) return;
 		disposed = true;
+		hold();
 		if (frame) view.cancelAnimationFrame(frame);
 		element.removeEventListener("pointermove", move);
 		element.removeEventListener("pointerdown", down);

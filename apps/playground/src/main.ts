@@ -5,6 +5,7 @@ import type { Control } from "./catalog.ts";
 import { attachPointer } from "cursor-worklet/register";
 import { attachView } from "aurora-worklet/register";
 import { attachArchitecture } from "architecture-worklet/register";
+import { settled, spring, stepSpring } from "../../../packages/core/src/motion.ts";
 import architectureUrl from "architecture-worklet/worklet.js?url";
 import auroraUrl from "aurora-worklet/worklet.js?url";
 import particlesUrl from "particles-worklet/worklet.js?url";
@@ -43,8 +44,17 @@ let selected = 0,
 	ready = false;
 let values: Record<string, string | number> = {};
 let detachPointer: (() => void) | undefined;
-let pointerFrame = 0;
+let pointerFrame = 0,
+	pointerTime = 0,
+	pointerTargetX = 0.5,
+	pointerTargetY = 0.5;
 let surfaceVisible = true;
+const pointerX = spring(0.5),
+	pointerY = spring(0.5);
+/** Interaction properties carried across preset changes within one effect, so the scene does not jump back to its resting pose. */
+const continuity = ["--worklet-pointer-x", "--worklet-pointer-y", "--cursor-position-x", "--cursor-position-y", "--cursor-heading"];
+/** Angular frequency of the spring that eases pointer-driven light and wave sources. */
+const POINTER_FREQUENCY = 7;
 
 /** Resolve a required interface element. @param selector Element selector. @returns The matching element. */
 function element<T extends HTMLElement = HTMLElement>(selector: string): T {
@@ -138,11 +148,54 @@ function updateRecipe(): void {
 	element("#js-code").textContent = jsRecipe();
 }
 
+/** Change the loop duration while keeping the loop's current position, so the scene slows or speeds up instead of jumping. @param seconds New loop duration. */
+function setDuration(seconds: number): void {
+	const previous = Number.parseFloat(getComputedStyle(surface).animationDuration) * 1000;
+	let loop: Animation | undefined;
+	for (const animation of surface.getAnimations()) if (animation instanceof CSSAnimation) loop = animation;
+	const time = loop?.currentTime;
+	surface.style.animationDuration = `${seconds}s`;
+	if (loop && typeof time === "number" && previous > 0 && previous !== seconds * 1000)
+		loop.currentTime = ((time % previous) / previous) * seconds * 1000;
+}
+
 /** Apply all current effect inputs. */
 function applyValues(): void {
 	for (const [name, value] of Object.entries(values)) surface.style.setProperty(name, String(value));
-	surface.style.animationDuration = `${duration}s`;
+	setDuration(duration);
 	updateRecipe();
+}
+
+/** Effects whose painters read a pointer position from their own CSS inputs. @returns The effect id, or undefined. */
+function pointerEffect(): string | undefined {
+	const id = experiments[selected].id;
+	return id === "ripple" || id === "iridescence" ? id : undefined;
+}
+
+/** Publish the eased pointer in the units each painter expects: CSS pixels for ripple, normalized for iridescence. @param id Effect id. */
+function writePointer(id: string): void {
+	surface.style.setProperty(`--${id}-position-x`, String(id === "ripple" ? pointerX.value * surface.offsetWidth : pointerX.value));
+	surface.style.setProperty(`--${id}-position-y`, String(id === "ripple" ? pointerY.value * surface.offsetHeight : pointerY.value));
+}
+
+/** Advance the pointer springs and stop once they rest. @param now Frame timestamp. */
+function stepPointer(now: number): void {
+	pointerFrame = 0;
+	const id = pointerEffect();
+	if (!ready || !id) return;
+	const seconds = (pointerTime ? Math.min(64, now - pointerTime) : 16.67) / 1000;
+	pointerTime = now;
+	stepSpring(pointerX, pointerTargetX, reducedMotion.matches ? 1e4 : POINTER_FREQUENCY, seconds);
+	stepSpring(pointerY, pointerTargetY, reducedMotion.matches ? 1e4 : POINTER_FREQUENCY, seconds);
+	const rest = settled(pointerX, pointerTargetX, 0.0005) && settled(pointerY, pointerTargetY, 0.0005);
+	if (rest) {
+		pointerX.value = pointerTargetX;
+		pointerY.value = pointerTargetY;
+		pointerX.velocity = pointerY.velocity = 0;
+		pointerTime = 0;
+	}
+	writePointer(id);
+	if (!rest) pointerFrame = requestAnimationFrame(stepPointer);
 }
 
 /** Render a labeled range input. @param control Control metadata. @returns Control markup. */
@@ -168,10 +221,22 @@ function resetValues(): void {
 /** Render the chosen experiment. */
 function renderEffect(): void {
 	const effect = experiments[selected];
+	const same = surface.dataset.effect === effect.id;
+	const carried = continuity.map(function read(name) {
+		return surface.style.getPropertyValue(name);
+	});
 	detachPointer?.();
 	if (pointerFrame) cancelAnimationFrame(pointerFrame);
 	pointerFrame = 0;
+	pointerTime = 0;
 	surface.removeAttribute("style");
+	if (same) {
+		for (let i = 0; i < continuity.length; i++) if (carried[i]) surface.style.setProperty(continuity[i], carried[i]);
+	} else {
+		pointerX.value = pointerTargetX = 0.5;
+		pointerY.value = pointerTargetY = 0.5;
+		pointerX.velocity = pointerY.velocity = 0;
+	}
 	if (ready) surface.style.backgroundImage = `paint(${effect.id})`;
 	surface.setAttribute("aria-label", `${effect.name}: ${effect.subtitle}`);
 	surface.dataset.effect = effect.id;
@@ -201,6 +266,8 @@ function renderEffect(): void {
 	renderControls();
 	applyValues();
 	updateMotion();
+	const id = pointerEffect();
+	if (ready && same && id) writePointer(id);
 	if (ready)
 		detachPointer =
 			effect.id === "cursor"
@@ -339,18 +406,12 @@ window.addEventListener("hashchange", function sharedEffect() {
 surface.addEventListener(
 	"pointermove",
 	function pointer(event) {
-		if (!ready || !["ripple", "iridescence"].includes(experiments[selected].id)) return;
-		if (pointerFrame) cancelAnimationFrame(pointerFrame);
-		pointerFrame = requestAnimationFrame(function paintPointer() {
-			pointerFrame = 0;
-			const rect = surface.getBoundingClientRect();
-			if (!rect.width || !rect.height) return;
-			const id = experiments[selected].id;
-			const x = (event.clientX - rect.left) / rect.width,
-				y = (event.clientY - rect.top) / rect.height;
-			surface.style.setProperty(`--${id}-position-x`, String(id === "ripple" ? x * surface.offsetWidth : x));
-			surface.style.setProperty(`--${id}-position-y`, String(id === "ripple" ? y * surface.offsetHeight : y));
-		});
+		if (!ready || !pointerEffect()) return;
+		const rect = surface.getBoundingClientRect();
+		if (!rect.width || !rect.height) return;
+		pointerTargetX = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+		pointerTargetY = Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height));
+		if (!pointerFrame) pointerFrame = requestAnimationFrame(stepPointer);
 	},
 	{ passive: true },
 );
