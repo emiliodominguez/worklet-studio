@@ -2,6 +2,8 @@
 
 ## Motion pass
 
+cursor-worklet 1.3.0, particles-worklet 1.3.0, kaleidoscope-worklet 0.3.0; all other worklets 0.2.1.
+
 - Pointer helpers (`attachView`, `attachArchitecture`, the studio's ripple and iridescence sources) move on critically damped springs, so motion starts and stops without a kink and is identical at any frame rate. Leaving the surface no longer snaps the scene back: it holds briefly, then drifts to center. A new helper continues from values left inline.
 - cursor-worklet: the trail is a chain of links that follow one another, so it curves like fabric and reels in smoothly. Once it is short, it blends continuously into the idle tail, which now streams behind the last direction of travel (`--cursor-heading`) instead of popping to a fixed leftward pose. Speed, press and heading are eased independently of frame rate. Original ripples fade in instead of appearing at full strength, atom electrons dim gradually behind the nucleus, and plasma filaments sway instead of jumping when the loop restarts.
 - kaleidoscope-worklet: tumbling pieces turn a whole number of times per loop, removing the jump at the loop seam; twist now adds a sway.

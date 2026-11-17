@@ -1,6 +1,6 @@
 {
 	"name": "ripple-worklet",
-	"version": "0.2.0",
+	"version": "0.2.1",
 	"description": "Liquid interference rings and luminous wavefronts.",
 	"type": "module",
 	"main": "worklet.js",

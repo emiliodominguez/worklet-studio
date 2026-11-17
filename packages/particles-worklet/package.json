@@ -1,6 +1,6 @@
 {
 	"name": "particles-worklet",
-	"version": "1.2.0",
+	"version": "1.3.0",
 	"description": "Seeded particle constellations with glowing, distance-faded connections.",
 	"type": "module",
 	"main": "worklet.js",

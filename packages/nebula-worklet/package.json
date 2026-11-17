@@ -1,6 +1,6 @@
 {
 	"name": "nebula-worklet",
-	"version": "0.2.0",
+	"version": "0.2.1",
 	"description": "Luminous nebula clouds, dark dust lanes, and a seeded star field.",
 	"type": "module",
 	"main": "worklet.js",

@@ -1,6 +1,6 @@
 {
 	"name": "terrain-worklet",
-	"version": "0.2.0",
+	"version": "0.2.1",
 	"description": "Living topographic contour surfaces shaped by layered waves.",
 	"type": "module",
 	"main": "worklet.js",
