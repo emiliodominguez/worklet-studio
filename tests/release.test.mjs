@@ -3,7 +3,7 @@ import { test } from "node:test";
 import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { parseOptions, discoverPackages, createPlan, executePlan, loadPermissions, registry } from "../scripts/release.mjs";
+import { parseOptions, discoverPackages, createPlan, executePlan, loadPermissions, maintainerName, registry } from "../scripts/release.mjs";
 
 const packages = [
 	{ name: "alpha-worklet", version: "1.1.0", integrity: "sha512-a", archive: "/tmp/alpha.tgz" },
@@ -166,5 +166,28 @@ test("permission listing degrades to the maintainer check only for forbidden tok
 			return { "alpha-worklet": "read-write" };
 		}),
 		{ "alpha-worklet": "read-write" },
+	);
+});
+
+test("ownership accepts maintainers in both npm view string and packument object form", async function maintainers() {
+	assert.equal(maintainerName("me <me@example.com>"), "me");
+	assert.equal(maintainerName({ name: "me", email: "me@example.com" }), "me");
+	for (const maintainer of ["me <me@example.com>", { name: "me" }]) {
+		const plan = await createPlan([packages[0]], {
+			identity: "me",
+			lookup: async function remote() {
+				return { versions: ["0.0.1"], maintainers: [maintainer] };
+			},
+		});
+		assert.equal(plan[0].action, "publish");
+	}
+	await assert.rejects(
+		createPlan([packages[0]], {
+			identity: "me",
+			lookup: async function remote() {
+				return { versions: ["0.0.1"], maintainers: ["someone-else <x@example.com>"] };
+			},
+		}),
+		/does not have publish access/,
 	);
 });

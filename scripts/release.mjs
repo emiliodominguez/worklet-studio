@@ -76,6 +76,16 @@ function npm(args, { cwd = root, interactive = false, allowMissing = false } = {
 	return data;
 }
 
+/**
+ * Normalize a registry maintainer entry; `npm view --json` emits "name <email>" strings while the raw packument uses objects.
+ * @param user Maintainer entry as a string or `{ name }` object.
+ * @returns The npm username, or undefined when it cannot be read.
+ */
+export function maintainerName(user) {
+	if (typeof user === "string") return user.split("<")[0].trim() || undefined;
+	return user?.name;
+}
+
 /** Preflight every package before any publication; identical published tarballs are resumable. @param packages Packed local packages. @param services Registry readers and optional identity. @returns Complete publish/skip plan. */
 export async function createPlan(packages, { lookup, lookupIntegrity, identity, permissions = {} }) {
 	const plan = [];
@@ -93,7 +103,7 @@ export async function createPlan(packages, { lookup, lookupIntegrity, identity, 
 			remote &&
 			permissions[item.name] !== "read-write" &&
 			!remote.maintainers?.some(function owner(user) {
-				return user.name === identity;
+				return maintainerName(user) === identity;
 			})
 		)
 			throw new Error(`${identity} does not have publish access to ${item.name}. No packages were published.`);
